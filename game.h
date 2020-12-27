@@ -1,11 +1,16 @@
 #ifndef GAME_H
 #define GAME_H
 
-class Game {
-public:
+#include <glm/glm.hpp>
+
+class Game
+{
+  public:
     float eyeX;
     float eyeY;
     float eyeZ;
+
+    glm::mat4 projection;
 };
 
 #endif

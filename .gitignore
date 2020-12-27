@@ -2,3 +2,4 @@ build/
 build-kdevelop/
 *.kdev4
 CMakeLists.txt.user
+*.kate-swp

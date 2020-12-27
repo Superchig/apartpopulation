@@ -56,7 +56,8 @@ GLenum glCheckError_(const char *file, int line)
 }
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
 
-float eyeChange(float eyeZ) {
+float eyeChange(float eyeZ)
+{
     return eyeZ / 100.0f;
 }
 
@@ -120,7 +121,7 @@ void renderText(Shader &s, const std::string &text, float x, float y, float scal
 void drawTriangle(Shader &shader, float centerX, float centerY, float scale, float rotateDeg)
 {
     shader.use();
-
+    
     glm::vec3 eye = glm::vec3(eyeX, eyeY, eyeZ);
     glm::vec3 center = eye + glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -144,7 +145,7 @@ void drawTriangle(Shader &shader, float centerX, float centerY, float scale, flo
 void drawRectangle(Shader &shader, float centerX, float centerY, float width, float height, float rotateDeg)
 {
     shader.use();
-
+    
     glm::vec3 eye = glm::vec3(eyeX, eyeY, eyeZ);
     glm::vec3 center = eye + glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -403,11 +404,11 @@ int main()
         // glClearColor(0.0f, 0.19215686274509805f, 0.3254901960784314f, 0.0f); // Prussian blue
         glClear(GL_COLOR_BUFFER_BIT);
         
-        drawTriangle(shaderProgram, -0.5f, -0.5f, 0.5f, 30.0f * glfwGetTime());
-        drawTriangle(shaderProgram, playerX, playerY, 0.5f, 90.0f);
-        
-        drawRectangle(shaderProgram, 0.0f, -0.25f, 1.0f, 0.25f, 0.0f);
-        drawRectangle(shaderProgram, 0.0f, 0.5f, 1.0f, 0.25f, 30.0f * glfwGetTime());
+        // drawTriangle(shaderProgram, -0.5f, -0.5f, 0.5f, 30.0f * glfwGetTime());
+        // drawTriangle(shaderProgram, playerX, playerY, 0.5f, 90.0f);
+        // 
+        // drawRectangle(shaderProgram, 0.0f, -0.25f, 1.0f, 0.25f, 0.0f);
+        // drawRectangle(shaderProgram, 0.0f, 0.5f, 1.0f, 0.25f, 30.0f * glfwGetTime());
         
         // Render text
         // -----------
@@ -428,3 +429,6 @@ int main()
     glfwTerminate();
     return 0;
 }
+
+
+

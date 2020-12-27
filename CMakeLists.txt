@@ -9,6 +9,8 @@ set(BASE_SRCS
     main.cpp
     shader.h
     shader.cpp 
+    table.h
+    table.cpp
     stb_image.h
     stb_image.cpp
 )
