@@ -13,12 +13,7 @@ uniform mat4 projection;
 void main()
 {
     // Coordinates should be in clip space
-    // gl_Position = mat4(1.0f) * model * vec4(aPos, 1.0f);
-    // gl_Position = projection * model * vec4(aPos, 1.0f);
-    // gl_Position = projection * view * vec4(aPos, 1.0f);
     gl_Position = projection * view * model * vec4(aPos, 1.0f);
-    
-    // ourColor = aColor; // set ourColor to the input color we got from the vertex data
     
     ourColor = aColor;
 }
