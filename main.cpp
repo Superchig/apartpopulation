@@ -8,7 +8,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "Shader.h"
+#include "shader.h"
 
 const unsigned int WINDOW_WIDTH = 800;
 const unsigned int WINDOW_HEIGHT = 600;
@@ -22,10 +22,17 @@ struct Character {
 
 GLuint VAO_FONT;
 GLuint VBO_FONT;
+GLuint VAO_TRIG;
+GLuint VBO_TRIG;
+GLuint VAO_RECT;
+GLuint VBO_RECT;
 std::map<char, Character> Characters;
 float eyeX = 0.0f;
 float eyeY = 0.0f;
 float eyeZ = 3.0f;
+float playerX = 0.0f;
+float playerY = 0.0f;
+const float playerChange = 0.01f;
 
 GLenum glCheckError_(const char *file, int line)
 {
@@ -61,20 +68,17 @@ void renderText(Shader &s, const std::string &text, float x, float y, float scal
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO_FONT);
     
-    GLint modelLoc = glGetUniformLocation(s.ID, "model");
     glm::mat4 model = glm::mat4(1.0f);
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    s.setMatrix("model", model);
     
-    GLint projectionLoc = glGetUniformLocation(s.ID, "projection");
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) WINDOW_WIDTH / (float) WINDOW_HEIGHT, 0.1f, 100.0f); 
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    s.setMatrix("projection", projection);
     
-    GLint viewLoc = glGetUniformLocation(s.ID, "view");
     glm::vec3 eye = glm::vec3(eyeX, eyeY, eyeZ);
     glm::vec3 center = eye + glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::mat4 view = glm::lookAt(eye, center, up);
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    s.setMatrix("view", view);
     
     // Iterate through all the characters
     for (char c : text)
@@ -111,6 +115,54 @@ void renderText(Shader &s, const std::string &text, float x, float y, float scal
     }
     // glBindVertexArray(0);
     // glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void drawTriangle(Shader &shader, float centerX, float centerY, float scale, float rotateDeg)
+{
+    shader.use();
+
+    glm::vec3 eye = glm::vec3(eyeX, eyeY, eyeZ);
+    glm::vec3 center = eye + glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::mat4 view = glm::lookAt(eye, center, up);
+    shader.setMatrix("view", view);
+    
+    // Draw triangle
+    // -------------
+    glBindVertexArray(VAO_TRIG);
+    
+    glm::mat4 model = glm::mat4(1.0f);
+    
+    model = glm::translate(model, glm::vec3(centerX, centerY, 0.0f));
+    model = glm::rotate(model, glm::radians(rotateDeg), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, glm::vec3(scale, scale, 1.0f));
+    
+    shader.setMatrix("model", model);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+void drawRectangle(Shader &shader, float centerX, float centerY, float width, float height, float rotateDeg)
+{
+    shader.use();
+
+    glm::vec3 eye = glm::vec3(eyeX, eyeY, eyeZ);
+    glm::vec3 center = eye + glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::mat4 view = glm::lookAt(eye, center, up);
+    shader.setMatrix("view", view);
+    
+    // Draw rectangle
+    // --------------
+    glBindVertexArray(VAO_RECT);
+    
+    glm::mat4 model = glm::mat4(1.0f);
+    
+    model = glm::translate(model, glm::vec3(centerX, centerY, 0.0f));
+    model = glm::rotate(model, glm::radians(rotateDeg), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, glm::vec3(width, height, 1.0f));
+    
+    shader.setMatrix("model", model);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 int main()
@@ -234,13 +286,11 @@ int main()
         1, 2, 3,   // Second triangle
     };  
     
-    GLuint VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
+    glGenVertexArrays(1, &VAO_TRIG);
+    glBindVertexArray(VAO_TRIG);
     
-    GLuint VBO;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glGenBuffers(1, &VBO_TRIG);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_TRIG);
     glBufferData(GL_ARRAY_BUFFER, sizeof(triVertices), triVertices, GL_STATIC_DRAW);
     
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
@@ -251,11 +301,9 @@ int main()
     
     // Initialize vertices for rectangle
     // ---------------------------------
-    GLuint VAO_RECT;
     glGenVertexArrays(1, &VAO_RECT);
     glBindVertexArray(VAO_RECT);
     
-    GLuint VBO_RECT;
     glGenBuffers(1, &VBO_RECT);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_RECT);
     glBufferData(GL_ARRAY_BUFFER, sizeof(rectVertices), rectVertices, GL_STATIC_DRAW);
@@ -271,7 +319,7 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_RECT);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(rectIndices), rectIndices, GL_STATIC_DRAW);
     
-    // Initialze font vertex array
+    // Initialize font vertex array
     // ---------------------------
     glGenVertexArrays(1, &VAO_FONT);
     glBindVertexArray(VAO_FONT);
@@ -282,12 +330,9 @@ int main()
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
     glEnableVertexAttribArray(0);
     
-    GLint modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
-    GLint viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
-    shaderProgram.use();
-    
     // Set projection matrix outside of render loop
     // -----------------------------------
+    shaderProgram.use();
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) WINDOW_WIDTH / (float) WINDOW_HEIGHT, 0.1f, 100.0f); 
     GLint projectionLoc = glGetUniformLocation(shaderProgram.ID, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
@@ -295,10 +340,6 @@ int main()
     // Declare camera manipulation variables
     // -------------------------------------
     const float zChange = 0.1f;
-    
-    float playerX = 0.0f;
-    float playerY = 0.0f;
-    const float playerChange = 0.01f;
     
     glCheckError();
     
@@ -362,46 +403,23 @@ int main()
         // glClearColor(0.0f, 0.19215686274509805f, 0.3254901960784314f, 0.0f); // Prussian blue
         glClear(GL_COLOR_BUFFER_BIT);
         
-        shaderProgram.use();
+        drawTriangle(shaderProgram, -0.5f, -0.5f, 0.5f, 30.0f * glfwGetTime());
+        drawTriangle(shaderProgram, playerX, playerY, 0.5f, 90.0f);
         
-        glm::vec3 eye = glm::vec3(eyeX, eyeY, eyeZ);
-        glm::vec3 center = eye + glm::vec3(0.0f, 0.0f, -1.0f);
-        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-        glm::mat4 view = glm::lookAt(eye, center, up);
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        
-        // Draw triangle
-        // -------------
-        glBindVertexArray(VAO);
-        
-        glm::mat4 model = glm::mat4(1.0f);
-        
-        model = glm::translate(model, glm::vec3(playerX, playerY, 0.0f));
-        
-        // model = glm::rotate(model, 3.0f * glm::radians((float) glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
-        // model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // The triangle is rotated on the x-axis a bit!
-        // model = glm::rotate(model, 20 * glm::radians((float) glfwGetTime()), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.5f, 0.5f, 1.0f));
-        
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        
-        // Draw rectangle
-        // --------------
-        shaderProgram.use();
-        glBindVertexArray(VAO_RECT);
-        
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -0.25f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 0.25f, 1.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        drawRectangle(shaderProgram, 0.0f, -0.25f, 1.0f, 0.25f, 0.0f);
+        drawRectangle(shaderProgram, 0.0f, 0.5f, 1.0f, 0.25f, 30.0f * glfwGetTime());
         
         // Render text
         // -----------
         renderText(textShader, "Hello, world!", 0.0f, 0.0f, 0.005f, glm::vec3(0.5f, 0.8f, 0.2f));
         renderText(textShader, "Line two!", 0.0f, -0.3f, 0.005f, glm::vec3(0.5f, 0.8f, 0.2f));
+        
+        double xPos;
+        double yPos;
+        glfwGetCursorPos(window, &xPos, &yPos);
+        std::stringstream sstream;
+        sstream << "Mouse cursor: " << xPos << ", " << yPos;
+        renderText(textShader, sstream.str(), -1.0f, -1.0f, 0.005f, glm::vec3(1.0f, 1.0f, 1.0f));
         
         glfwSwapBuffers(window);
         glfwPollEvents();
