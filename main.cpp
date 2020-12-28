@@ -262,6 +262,9 @@ int main()
     spreadTable.setItem(3, 0, "Noble 3");
     spreadTable.setItem(3, 1, "22");
 
+    spreadTable.setItem(4, 0, "A line was skipped!");
+    spreadTable.setItem(4, 1, "Ten");
+
     glCheckError();
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -343,6 +346,13 @@ int main()
         sstream << "Mouse cursor: " << xPos << ", " << yPos;
         textRen.renderText(sstream.str(), -1.0f, -1.0f, 0.005f,
                            glm::vec3(1.0f, 1.0f, 1.0f));
+
+        // const double xClip = (xPos / (Game::main.window_width / 2.0f)) - 1.0f;
+        // const double yClip = (yPos / (Game::main.window_height / 2.0f)) - 1.0f;
+        // sstream.str(std::string());
+        // sstream << "Mouse NDC: " << xClip << ", " << yClip;
+        // textRen.renderText(sstream.str(), -1.0f, -0.5f, 0.005f,
+        //                    glm::vec3(1.0f, 1.0f, 1.0f));
 
         spreadTable.draw();
 

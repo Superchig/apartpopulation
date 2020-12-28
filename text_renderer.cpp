@@ -30,6 +30,7 @@ TextRenderer::TextRenderer(const std::string &fontPath, Shader *fontShader, FT_U
     }
 
     FT_Set_Pixel_Sizes(face, 0, pixelSize);
+    // FT_Set_Char_Size(face, 0, 12 * 64, 96, 96);
 
     // FIXME: Check if I should undo this after the font is loaded in
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Disable byte-alignment restriction
@@ -155,10 +156,14 @@ void TextRenderer::renderTextMax(const std::string &text, float x, float y,
     {
         Character ch = characters[c];
 
+        const float nextX =
+            x + (ch.Advance >> 6) *
+                    scale; // Bitshift by 6 to get value in pixels (2*6 = 64)
+
         float xPos = x + ch.Bearing.x * scale;
         float yPos = y - (ch.Size.y - ch.Bearing.y) * scale;
 
-        if (x > maxRightPos)
+        if (nextX > maxRightPos)
         {
             // Render 3 periods/an ellipsis
             // ----------------------------
@@ -217,8 +222,7 @@ void TextRenderer::renderTextMax(const std::string &text, float x, float y,
         glDrawArrays(GL_TRIANGLES, 0, 6);
         // Now advance cursors for next glyph (note that advance is number of
         // 1/64 pixels)
-        x += (ch.Advance >> 6) *
-             scale; // Bitshift by 6 to get value in pixels (2*6 = 64)
+        x = nextX;
     }
     // glBindVertexArray(0);
     // glBindTexture(GL_TEXTURE_2D, 0);
