@@ -13,7 +13,9 @@ set(BASE_SRCS
     table.cpp
     stb_image.h
     stb_image.cpp
-)
+    "text_renderer.h"
+    "text_renderer.cpp"
+    game.h)
 
 add_executable(apart-population ${BASE_SRCS})
 

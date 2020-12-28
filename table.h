@@ -1,23 +1,33 @@
 #ifndef TABLE_H
 #define TABLE_H
 
-#include <GLFW/glfw3.h>
+#include <array>
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <vector>
+
+#include "shader.h"
+#include "text_renderer.h"
 
 // This shall be a spreadsheet-like table of values
 class Table
 {
   public:
+    static const size_t COLS = 2;
+
     // Mark upper-left corners
-    int          xPos;
-    int          yPos;
-    unsigned int rows;
-    unsigned int cols;
-    GLuint       textVAO;
+    float                                      xPos;
+    float                                      yPos;
+    size_t                                     rows;
+    TextRenderer *                             textRen;
+    std::vector<std::array<std::string, COLS>> data;
+    std::array<int, COLS>                      col_widths;
 
-    Table(int xPos, int yPos, int rows, int cols, GLuint textVAO);
+    Table(float xPos, float yPos, int rows, TextRenderer *textRen);
 
-    void render();
+    void setItem(int row, int col, std::string value);
+    void setColWidth(int col, int width);
+    void draw();
 };
 
 #endif
