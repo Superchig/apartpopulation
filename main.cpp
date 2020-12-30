@@ -13,6 +13,8 @@
 #include "text_renderer.h"
 #include "table.h"
 #include "game.h"
+#include "line_renderer.h"
+#include "check_error.h"
 
 // const unsigned int WINDOW_WIDTH  = 800;
 // const unsigned int WINDOW_HEIGHT = 600;
@@ -31,42 +33,6 @@ GLuint                    VBO_RECT;
 // const float               playerChange = 0.01f;
 
 Game Game::main;
-
-GLenum glCheckError_(const char *file, int line)
-{
-    GLenum errorCode;
-    while ((errorCode = glGetError()) != GL_NO_ERROR)
-    {
-        std::string error;
-        switch (errorCode)
-        {
-        case GL_INVALID_ENUM:
-            error = "INVALID_ENUM";
-            break;
-        case GL_INVALID_VALUE:
-            error = "INVALID_VALUE";
-            break;
-        case GL_INVALID_OPERATION:
-            error = "INVALID_OPERATION";
-            break;
-        case GL_STACK_OVERFLOW:
-            error = "STACK_OVERFLOW";
-            break;
-        case GL_STACK_UNDERFLOW:
-            error = "STACK_UNDERFLOW";
-            break;
-        case GL_OUT_OF_MEMORY:
-            error = "OUT_OF_MEMORY";
-            break;
-        case GL_INVALID_FRAMEBUFFER_OPERATION:
-            error = "INVALID_FRAMEBUFFER_OPERATION";
-            break;
-        }
-        std::cout << error << " | " << file << " (" << line << ")" << std::endl;
-    }
-    return errorCode;
-}
-#define glCheckError() glCheckError_(__FILE__, __LINE__)
 
 float eyeChange(float eyeZ) { return eyeZ / 100.0f; }
 
@@ -132,6 +98,22 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+#ifndef NDEBUG
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+
+    // FIXME: Setup debug output with ARB_debug_output extension
+    // as per https://learnopengl.com/In-Practice/Debugging
+    // TODO: Move to GLEW (https://github.com/nigels-com/glew) to
+    // dynamically access extensions
+
+    // int flags;
+    // glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    // if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    // {
+    //     std::cout << "Initializing debug!" << std::endl;
+    // }
+#endif
+
     glfwWindowHintString(GLFW_X11_CLASS_NAME, "OpenGL");
     glfwWindowHintString(GLFW_X11_INSTANCE_NAME, "OpenGL");
 
@@ -153,7 +135,7 @@ int main()
         return -1;
     }
 
-    Shader shaderProgram("shader.vs", "shader.fs");
+    Shader shaderProgram("shader.vert", "shader.frag");
 
     const float SIDE_LENGTH = 1.0f;
     const float HALF_SIDE   = SIDE_LENGTH / 2.0f;
@@ -244,8 +226,12 @@ int main()
     // -------------------------------------
     const float zChange = 0.1f;
 
-    Shader textShader("text.vs", "text.fs");
+    // Initialize and set up table and text
+    // ------------------------------------
+    Shader       textShader("text.vert", "text.frag");
     TextRenderer textRen("fonts/Cantarell-Regular.otf", &textShader, 48);
+    Shader       shader2d("2d_shader.vert", "2d_shader.frag");
+    LineRenderer lineRen(&shader2d);
 
     Table spreadTable(-2.0f, 0.75f, 10, &textRen);
     spreadTable.setColWidth(0, 400);
@@ -356,8 +342,21 @@ int main()
 
         spreadTable.draw();
 
+        lineRen.drawLine(0.0f, 0.0f, 0.0f, 1.0f);
+
+        // Test out rendering a line with the vertices (and shader)
+        // for a triangle
+        // shaderProgram.use();
+        // shaderProgram.setMatrix("model", glm::mat4(1.0f));
+        // shaderProgram.setMatrix("view", Game::main.view);
+        // shaderProgram.setMatrix("projection", Game::main.projection);
+        // glBindVertexArray(VAO_TRIG);
+        // glDrawArrays(GL_LINES, 0, 2);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        glCheckError();
     }
 
     glfwTerminate();

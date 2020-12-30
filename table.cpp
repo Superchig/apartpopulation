@@ -23,7 +23,7 @@ void Table::draw()
     // In height (in pixels) of font's bitmap
     const float DOWN_PADDING = 25.0f;
     const int   COL_WIDTH    = 400; // In font pixels
-    // const int   COL_PADDING  = 50; // In font pixels
+    const int   COL_PADDING  = 50; // In font pixels
 
     int maxHeight = -1;
     for (auto const &[ch, info] : textRen->characters)
@@ -41,6 +41,7 @@ void Table::draw()
     const float downLengthPadding = DOWN_PADDING * SCALE_FACTOR;
     const float downLength        = downLengthBase + downLengthPadding;
     // const float scaledColWidth    = (float)COL_WIDTH * SCALE_FACTOR;
+    const float scaledColPadding = COL_PADDING * SCALE_FACTOR;
     for (int i = 0; i < data.size(); i++)
     {
         glm::vec3 color = i == 0 ? glm::vec3(1.0f, 0.5f, 0.5f) : glm::vec3(1.0f, 1.0f, 1.0f);
@@ -62,7 +63,7 @@ void Table::draw()
                                        color, specificWidth);
             }
 
-            currentX += scaledWidth;
+            currentX += scaledWidth + scaledColPadding;
         }
 
         currentY -= downLength;
