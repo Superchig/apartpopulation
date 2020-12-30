@@ -1,4 +1,5 @@
 #include "table.h"
+#include "game.h"
 
 #include <array>
 #include <glm/glm.hpp>
@@ -19,7 +20,8 @@ void Table::setColWidth(int col, int width) { col_widths[col] = width; }
 
 void Table::draw()
 {
-    const float SCALE_FACTOR = 0.00175f;
+    const float SCALE_FACTOR = 1.0f;
+    // const float SCALE_FACTOR = (1.0f / Game::main.window_height);
     // In height (in pixels) of font's bitmap
     const float DOWN_PADDING = 25.0f;
     const int   COL_WIDTH    = 400; // In font pixels
