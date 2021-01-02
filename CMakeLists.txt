@@ -20,7 +20,13 @@ set(BASE_SRCS
     line_renderer.h
     line_renderer.cpp
     "check_error.h"
-    "check_error.cpp")
+    "check_error.cpp"
+    "button.h"
+    "button.cpp"
+    texture_2d.cpp
+    texture_2d.h
+    sprite_renderer.h
+    sprite_renderer.cpp)
 
 add_executable(apart-population ${BASE_SRCS})
 

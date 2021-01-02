@@ -30,7 +30,6 @@ class TextRenderer
     TextRenderer(const std::string &fontPath, Shader *fontShader, FT_UInt pixelSize);
     void renderText(const std::string &text, float x, float y, float scale,
                     glm::vec3 color);
-    // FIXME: Actually implement
     void renderTextMax(const std::string &text, float x, float y, float scale,
                        glm::vec3 color, int maxWidth);
 };

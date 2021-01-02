@@ -15,6 +15,8 @@
 #include "game.h"
 #include "line_renderer.h"
 #include "check_error.h"
+#include "texture_2d.h"
+#include "sprite_renderer.h"
 
 // const unsigned int WINDOW_WIDTH  = 800;
 // const unsigned int WINDOW_HEIGHT = 600;
@@ -244,9 +246,9 @@ int main()
     Shader       shader2d("2d_shader.vert", "2d_shader.frag");
     LineRenderer lineRen(&shader2d);
 
-    Table spreadTable(-2.0f, 0.75f, 10, &textRen);
+    Table spreadTable(-200.0f, 300.0f, 5, &textRen, &lineRen);
     spreadTable.setColWidth(0, 400);
-    spreadTable.setColWidth(1, 800);
+    spreadTable.setColWidth(1, 200);
     spreadTable.setItem(0, 0, "Name");
     spreadTable.setItem(0, 1, "Age");
 
@@ -261,6 +263,10 @@ int main()
 
     spreadTable.setItem(4, 0, "A line was skipped!");
     spreadTable.setItem(4, 1, "Ten");
+    
+    Texture2D container{"sprites/container.jpg", false};
+    Shader spriteShader{"shaders/sprite.vert", "shaders/sprite.frag"};
+    SpriteRenderer spriteRen{spriteShader};
 
     glCheckError();
 
@@ -292,7 +298,7 @@ int main()
         }
         else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
         {
-            Game::main.zoomFactor -= 1.0f;
+            Game::main.zoomFactor = 1.0f;
             Game::main.eyeX = 0.0f;
             Game::main.eyeY = 0.0f;
             
@@ -347,9 +353,9 @@ int main()
         double yPos;
         glfwGetCursorPos(window, &xPos, &yPos);
         std::stringstream sstream;
-        sstream << "Mouse cursor: " << xPos << ", " << yPos;
-        textRen.renderText(sstream.str(), -640.0f, -32.0f, 1.0f,
-                           glm::vec3(1.0f, 1.0f, 1.0f));
+        // sstream << "Mouse cursor: " << xPos << ", " << yPos;
+        // textRen.renderText(sstream.str(), -640.0f, -32.0f, 1.0f,
+        //                    glm::vec3(1.0f, 1.0f, 1.0f));
         
         // Coordinates in clip space for mouse cursor.
         // Note: With the view and perspective
@@ -361,10 +367,6 @@ int main()
         // why that happens either).
         const double xNDC = (xPos / (Game::main.window_width / 2.0f)) - 1.0f;
         const double yNDC = 1.0f - (yPos / (Game::main.window_height / 2.0f));
-        sstream.str(std::string());
-        sstream << "Mouse NDC: " << xNDC << ", " << yNDC;
-        textRen.renderText(sstream.str(), -640.0f, 0.0f, 1.0f,
-                           glm::vec3(1.0f, 1.0f, 1.0f));
         
         // drawTriangle(shaderProgram, 0.5f, 0.0f, 1.0f, 0.0f);
         // Note: 1473 and 829 are the width and height in (z = 0)
@@ -375,7 +377,10 @@ int main()
         const float rectHeight = 200.0f;
         drawRectangle(shaderProgram, rectX, rectY, rectWidth, rectHeight, 0.0f);
         glm::vec3 topRightWorld = glm::vec3(rectX + (rectWidth / 2.0f), rectY + (rectHeight / 2.0f), 0.0f);
-        std::cout << "topRightWorld: " << topRightWorld.x << ", " << topRightWorld.y << ", " << topRightWorld.z << std::endl;
+        // std::cout << "topRightWorld: " << topRightWorld.x << ", " << topRightWorld.y << ", " << topRightWorld.z << std::endl;
+        sstream.str("");
+        sstream << "topRightWorld: " << topRightWorld.x << ", " << topRightWorld.y << ", " << topRightWorld.z;
+        textRen.renderText(sstream.str(), -640.0f, 0.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         
         // This math doesn't work with perspective projection matrices, but it does
         // work with an orthographic projection matrix
@@ -383,12 +388,16 @@ int main()
         glm::mat4 VPinv = glm::inverse(VP);
         glm::vec4 mouseClip = glm::vec4((float)xNDC, (float)yNDC, 1.0f, 1.0f);
         glm::vec4 worldMouse = VPinv * mouseClip;
-        std::cout << "worldMouse: " << worldMouse.x << ", " << worldMouse.y << ", " << worldMouse.z << ", " << worldMouse.w << std::endl;
+        // std::cout << "worldMouse: " << worldMouse.x << ", " << worldMouse.y << ", " << worldMouse.z << ", " << worldMouse.w << std::endl;
+        sstream.str("");
+        sstream << "worldMouse: " << worldMouse.x << ", " << worldMouse.y << ", " << worldMouse.z << ", " << worldMouse.w;
+        textRen.renderText(sstream.str(), -640.0f, -32.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+        
+        spriteRen.drawSprite(container, glm::vec2(Game::main.playerX, Game::main.playerY),
+                             glm::vec2(200.0f, 200.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
         
         spreadTable.draw();
 
-        lineRen.drawLine(0.0f, 0.0f, 0.0f, 300.0f);
-        
         glfwSwapBuffers(window);
         glfwPollEvents();
 

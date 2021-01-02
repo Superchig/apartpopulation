@@ -13,7 +13,7 @@ struct Game
     float       eyeZ = 1000.0f;
     float       playerX      = 0.0f;
     float       playerY      = 0.0f;
-    const float playerChange = 0.01f;
+    const float playerChange = 5.0f;
     float zoomFactor = 1.0f;
 
     int window_width  = 1280;

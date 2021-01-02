@@ -1,5 +1,5 @@
-# Simple Platformer
-This will be a simple platformer, made in OpenGL with GLFW, GLAD, and GLM.
+# Apartpopulation
+This will test out some of the simulations for the ApartPG.
 
 Massive thanks to Joey de Vries, for his wonderful
-(Learn OpenGL)[https://learnopengl.com/] series of tutorials.
+[Learn OpenGL](https://learnopengl.com/) series of tutorials.

@@ -24,7 +24,7 @@ TextRenderer::TextRenderer(const std::string &fontPath, Shader *fontShader, FT_U
     }
 
     FT_Face face;
-    if (FT_New_Face(ft, "fonts/Cantarell-Regular.otf", 0, &face))
+    if (FT_New_Face(ft, fontPath.c_str(), 0, &face))
     {
         std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
     }
