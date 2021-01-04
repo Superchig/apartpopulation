@@ -2,7 +2,7 @@
 #include "game.h"
 #include "sprite_renderer.h"
 #include <glad/glad.h>
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
 Button::Button(float x, float y, int width, int height, Texture2D *texture,

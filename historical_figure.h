@@ -1,5 +1,7 @@
 #ifndef HISTORICAL_FIGURE_H
 
+#include <string>
+
 enum PoliticalStrategy
 {
     Wastrel, Warrior, Bureaucrat, Artist, Factioneer

@@ -16,11 +16,11 @@ class Button
     Texture2D *texture;
     SpriteRenderer *spriteRenderer;
 
-    Button::Button(float x, float y, int width, int height, Texture2D *texture,
+    Button(float x, float y, int width, int height, Texture2D *texture,
                    SpriteRenderer *spriteRenderer);
 
     void draw();
     bool hasInBounds(float x, float y);
 };
 
-#endif BUTTON_H
+#endif

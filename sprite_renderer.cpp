@@ -9,7 +9,9 @@ SpriteRenderer::SpriteRenderer(Shader &shader) : shader(shader)
 
 SpriteRenderer::~SpriteRenderer()
 {
-    glDeleteVertexArrays(1, &this->quadVAO);
+    // If this is called after GLFW terminates, then a segmentation
+    // fault will occur.
+    // glDeleteVertexArrays(1, &this->quadVAO);
 }
 
 void SpriteRenderer::initRenderData()
