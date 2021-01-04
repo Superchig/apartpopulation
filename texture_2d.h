@@ -18,9 +18,7 @@ class Texture2D
     GLuint       filterMin;
     GLuint       filterMax;
 
-    Texture2D(const char *file, bool alpha);
-
-    void generate(const char *file, bool alpha);
+    Texture2D(const char *file, bool alpha, int filter = GL_LINEAR);
 
     void bind() const;
 };

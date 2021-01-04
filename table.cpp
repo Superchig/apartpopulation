@@ -50,7 +50,7 @@ void Table::draw()
     const float scaledColPadding = COL_PADDING * SCALE_FACTOR;
 
     // Calculate total column width
-    int totalWidth = 0;
+    float totalWidth = 0;
     for (int width : col_widths)
     {
         totalWidth += width + scaledColPadding;

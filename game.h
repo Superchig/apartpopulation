@@ -2,10 +2,15 @@
 #define GAME_H
 
 #include <glm/glm.hpp>
+#include <vector>
+
+class SpriteRenderer;
+class Button;
 
 // Global state
-struct Game
+class Game
 {
+  public:
     static Game main;
 
     float       eyeX = 0.0f;
@@ -16,12 +21,17 @@ struct Game
     const float playerChange = 5.0f;
     float zoomFactor = 1.0f;
 
+    float mouseX;
+    float mouseY;
+
+    std::vector<Button *> buttons;
+
     int window_width  = 1280;
     int window_height = 720;
 
     glm::mat4 view;
     glm::mat4 projection;
-    
+
     void updateOrtho();
 };
 

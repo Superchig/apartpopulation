@@ -17,85 +17,13 @@
 #include "check_error.h"
 #include "texture_2d.h"
 #include "sprite_renderer.h"
-
-// const unsigned int WINDOW_WIDTH  = 800;
-// const unsigned int WINDOW_HEIGHT = 600;
-
-GLuint                    VAO_FONT;
-GLuint                    VBO_FONT;
-GLuint                    VAO_TRIG;
-GLuint                    VBO_TRIG;
-GLuint                    VAO_RECT;
-GLuint                    VBO_RECT;
-// float                     eyeX         = 0.0f;
-// float                     eyeY         = 0.0f;
-// float                     eyeZ         = 3.0f;
-// float                     playerX      = 0.0f;
-// float                     playerY      = 0.0f;
-// const float               playerChange = 0.01f;
+#include "button.h"
 
 Game Game::main;
 
 float eyeChange(float eyeZ) { return 10.0f * Game::main.zoomFactor; }
 
-void drawTriangle(Shader &shader, float centerX, float centerY, float scale,
-                  float rotateDeg)
-{
-    shader.use();
-
-    glm::vec3 eye    = glm::vec3(Game::main.eyeX, Game::main.eyeY, Game::main.eyeZ);
-    glm::vec3 center = eye + glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 up     = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::mat4 view   = glm::lookAt(eye, center, up);
-    shader.setMatrix("view", view);
-
-    // Draw triangle
-    // -------------
-    glBindVertexArray(VAO_TRIG);
-
-    glm::mat4 model = glm::mat4(1.0f);
-
-    model = glm::translate(model, glm::vec3(centerX, centerY, 0.0f));
-    model = glm::rotate(model, glm::radians(rotateDeg),
-                        glm::vec3(0.0f, 0.0f, 1.0f));
-    model = glm::scale(model, glm::vec3(scale, scale, 1.0f));
-
-    shader.setMatrix("model", model);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-}
-
-void drawRectangle(Shader &shader, float centerX, float centerY, float width,
-                   float height, float rotateDeg)
-{
-    shader.use();
-    
-    shader.setMatrix("projection", Game::main.projection);
-
-    // glm::mat4 view   = glm::lookAt(eye, center, up);
-    shader.setMatrix("view", Game::main.view);
-
-    // Draw rectangle
-    // --------------
-    glBindVertexArray(VAO_RECT);
-
-    glm::mat4 model = glm::mat4(1.0f);
-
-    model = glm::translate(model, glm::vec3(centerX, centerY, 0.0f));
-    model = glm::rotate(model, glm::radians(rotateDeg),
-                        glm::vec3(0.0f, 0.0f, 1.0f));
-    model = glm::scale(model, glm::vec3(width, height, 1.0f));
-
-    shader.setMatrix("model", model);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    
-    // Display the top-right coordinate homogeneous clip space
-    // -------------------------------------------------------
-    // glm::mat4 MVP = Game::main.projection * Game::main.view * model;
-    // glm::vec4 topRight = MVP * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-    // glm::vec4 topRightPersp = topRight / topRight.w;
-    // std::cout << "topRight: " << topRight.x << ", " << topRight.y << ", " << topRight.z << ", " << topRight.w << std::endl;
-    // std::cout << "topRightPersp: " << topRightPersp.x << ", " << topRightPersp.y << ", " << topRightPersp.z << ", " << topRightPersp.w << std::endl;
-}
+void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 
 int main()
 {
@@ -144,108 +72,49 @@ int main()
         return -1;
     }
 
-    Shader shaderProgram("shader.vert", "shader.frag");
-
-    const float SIDE_LENGTH = 1.0f;
-    const float HALF_SIDE   = SIDE_LENGTH / 2.0f;
-    const float TRI_HEIGHT  = SIDE_LENGTH * sqrtf(3.0f) / 2.0f;
-    const float HALF_HEIGHT = TRI_HEIGHT / 2.0f;
-
-    // Equilateral triangle
-    float triVertices[] = {
-        0.0f,       HALF_HEIGHT,  0.0f, 1.0f, 0.0f, 0.0f, // Top
-        -HALF_SIDE, -HALF_HEIGHT, 0.0f, 0.0f, 1.0f, 0.0f, // Bottom left
-        HALF_SIDE,  -HALF_HEIGHT, 0.0f, 0.0f, 0.0f, 1.0f, // Bottom right
-    };
-
-    float rectVertices[] = {
-        // Positions        // Colors
-        0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, // Top right
-        0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // Bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // Bottom left
-        -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, // Top left
-    };
-
-    unsigned int rectIndices[] = {
-        0, 1, 3, // First triangle
-        1, 2, 3, // Second triangle
-    };
-
-    glGenVertexArrays(1, &VAO_TRIG);
-    glBindVertexArray(VAO_TRIG);
-
-    glGenBuffers(1, &VBO_TRIG);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_TRIG);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triVertices), triVertices,
-                 GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-                          (void *)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-                          (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    // Initialize vertices for rectangle
-    // ---------------------------------
-    glGenVertexArrays(1, &VAO_RECT);
-    glBindVertexArray(VAO_RECT);
-
-    glGenBuffers(1, &VBO_RECT);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_RECT);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(rectVertices), rectVertices,
-                 GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-                          (void *)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-                          (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    GLuint EBO_RECT;
-    glGenBuffers(1, &EBO_RECT);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_RECT);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(rectIndices), rectIndices,
-                 GL_STATIC_DRAW);
-
-    // Initialize font vertex array
-    // ---------------------------
-    glGenVertexArrays(1, &VAO_FONT);
-    glBindVertexArray(VAO_FONT);
-
-    glGenBuffers(1, &VBO_FONT);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_FONT);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-    glEnableVertexAttribArray(0);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
 
     // Set projection matrix outside of render loop
     // -----------------------------------
-    shaderProgram.use();
-    // Game::main.projection = glm::perspective(
-    //     glm::radians(45.0f), (float)Game::main.window_width / (float)Game::main.window_height, 0.1f,
-    //     1500.0f);
-    // Game::main.projection = glm::ortho(-640.0f, 640.0f, -360.0f, 360.0f, 0.1f, 1500.0f);
     Game::main.projection = glm::ortho(-640.0f * Game::main.zoomFactor, 640.0f * Game::main.zoomFactor,
                                        -360.0f * Game::main.zoomFactor, 360.0f * Game::main.zoomFactor,
                                        0.1f, 1500.0f);
-    GLint projectionLoc = glGetUniformLocation(shaderProgram.ID, "projection");
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(Game::main.projection));
 
     // Declare camera manipulation variables
     // -------------------------------------
     const float zChange = 10.0f;
 
-    // Initialize and set up table and text
-    // ------------------------------------
-    Shader       textShader("text.vert", "text.frag");
+    // Load shaders and other resources
+    // --------------------------------
+    Texture2D container{"sprites/container.jpg", false};
+    Texture2D buttonNormal{"sprites/adwitr-5th-button0.png", true, GL_NEAREST};
+    // Texture2D buttonPressed{"sprites/adwitr-5th-button1", true};
+
+    Shader       textShader("shaders/text.vert", "shaders/text.frag");
     TextRenderer textRen("fonts/Cantarell-Regular.otf", &textShader, 32);
-    Shader       shader2d("2d_shader.vert", "2d_shader.frag");
+
+    glCheckError();
+
+    Shader       shader2d("shaders/2d_shader.vert", "shaders/2d_shader.frag");
     LineRenderer lineRen(&shader2d);
 
+    glCheckError();
+
+    Shader         spriteShader{"shaders/sprite.vert", "shaders/sprite.frag"};
+    SpriteRenderer spriteRen{spriteShader};
+
+    glCheckError();
+
+    Button button{-0.25f * Game::main.window_width,
+                  -0.25f * Game::main.window_height,
+                  34 * 10,
+                  10 * 10,
+                  &buttonNormal,
+                  &spriteRen};
+    Game::main.buttons.push_back(&button);
+
+    // Initialize and set up table
+    // ------------------------------------
     Table spreadTable(-200.0f, 300.0f, 5, &textRen, &lineRen);
     spreadTable.setColWidth(0, 400);
     spreadTable.setColWidth(1, 200);
@@ -264,10 +133,6 @@ int main()
     spreadTable.setItem(4, 0, "A line was skipped!");
     spreadTable.setItem(4, 1, "Ten");
     
-    Texture2D container{"sprites/container.jpg", false};
-    Shader spriteShader{"shaders/sprite.vert", "shaders/sprite.frag"};
-    SpriteRenderer spriteRen{spriteShader};
-
     glCheckError();
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -368,14 +233,11 @@ int main()
         const double xNDC = (xPos / (Game::main.window_width / 2.0f)) - 1.0f;
         const double yNDC = 1.0f - (yPos / (Game::main.window_height / 2.0f));
         
-        // drawTriangle(shaderProgram, 0.5f, 0.0f, 1.0f, 0.0f);
-        // Note: 1473 and 829 are the width and height in (z = 0)
-        // world space when eye is at z = 1000
         const float rectX = -500.0f;
         const float rectY = 200.0f;
         const float rectWidth = 200.0f;
         const float rectHeight = 200.0f;
-        drawRectangle(shaderProgram, rectX, rectY, rectWidth, rectHeight, 0.0f);
+        // drawRectangle(shaderProgram, rectX, rectY, rectWidth, rectHeight, 0.0f);
         glm::vec3 topRightWorld = glm::vec3(rectX + (rectWidth / 2.0f), rectY + (rectHeight / 2.0f), 0.0f);
         // std::cout << "topRightWorld: " << topRightWorld.x << ", " << topRightWorld.y << ", " << topRightWorld.z << std::endl;
         sstream.str("");
@@ -392,11 +254,14 @@ int main()
         sstream.str("");
         sstream << "worldMouse: " << worldMouse.x << ", " << worldMouse.y << ", " << worldMouse.z << ", " << worldMouse.w;
         textRen.renderText(sstream.str(), -640.0f, -32.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+        Game::main.mouseX = worldMouse.x;
+        Game::main.mouseY = worldMouse.y;
         
         spriteRen.drawSprite(container, glm::vec2(Game::main.playerX, Game::main.playerY),
                              glm::vec2(200.0f, 200.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
         
         spreadTable.draw();
+        button.draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -406,4 +271,19 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        for (Button *button : Game::main.buttons)
+        {
+            if (button->hasInBounds(Game::main.mouseX, Game::main.mouseY))
+            {
+                std::cout << "Left mouse pressed a BUTTON at " << Game::main.mouseX
+                          << ", " << Game::main.mouseY << std::endl;
+            }
+        }
+    }
 }
