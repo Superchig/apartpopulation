@@ -7,8 +7,8 @@
 
 Table::Table(float xPos, float yPos, int rows, TextRenderer *textRen,
              LineRenderer *lineRen)
-    : xPos(xPos), yPos(yPos), rows(rows), textRen(textRen), data(rows),
-      lineRen(lineRen)
+    : xPos(xPos), yPos(yPos), rows(rows), textRen(textRen),
+      lineRen(lineRen), data(rows)
 {
     col_widths.fill(-1);
 }

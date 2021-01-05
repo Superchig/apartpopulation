@@ -32,6 +32,10 @@ class TextRenderer
                     glm::vec3 color);
     void renderTextMax(const std::string &text, float x, float y, float scale,
                        glm::vec3 color, int maxWidth);
+    
+    // TODO: Actually implement and then use
+    void boxRenderText(const std::string &text, float x, float y, float width,
+                       float height, float scale, glm::vec3 color);
 };
 
 #endif

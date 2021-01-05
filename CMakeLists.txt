@@ -27,7 +27,10 @@ set(BASE_SRCS
     texture_2d.h
     sprite_renderer.h
     sprite_renderer.cpp
-    historical_figure.h)
+    historical_figure.h
+    historical_figure.cpp
+    calendar.h
+    calendar.cpp)
 
 add_executable(apart-population ${BASE_SRCS})
 

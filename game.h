@@ -3,9 +3,12 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include "calendar.h"
 
+class HistoricalFigure;
 class SpriteRenderer;
 class Button;
+class Table;
 
 // Global state
 class Game
@@ -31,7 +34,17 @@ class Game
 
     glm::mat4 view;
     glm::mat4 projection;
-
+    
+#pragma region Simulation
+    std::vector<HistoricalFigure> livingFigures;
+    std::vector<HistoricalFigure> deadFigures;
+    
+    Date date = {1, JAN};
+#pragma endregion
+    
+    // TODO: Avoid using global state to make spreadTable accessible
+    Table *spreadTable;
+    
     void updateOrtho();
 };
 

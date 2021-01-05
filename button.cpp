@@ -6,9 +6,11 @@
 #include <glm/glm.hpp>
 
 Button::Button(float x, float y, int width, int height, Texture2D *texture,
-               SpriteRenderer *spriteRenderer)
+               SpriteRenderer *spriteRenderer, TextRenderer *textRen,
+               std::string text, float vertPadding)
     : x(x), y(y), width(width), height(height), texture(texture),
-      spriteRenderer(spriteRenderer)
+      spriteRenderer(spriteRenderer), textRen(textRen), text(text),
+      vertPadding(vertPadding)
 {
 }
 
@@ -16,9 +18,27 @@ void Button::draw()
 {
     spriteRenderer->drawSprite(*texture, glm::vec2(x, y),
                                glm::vec2(width, height));
+    
+    // TODO: Store this value in the text renderer during initialization
+    int maxHeight = -1;
+    for (auto const &[ch, info] : textRen->characters)
+    {
+        int height = info.Size.y;
+        if (height > maxHeight)
+        {
+            maxHeight = height;
+        }
+    }
+    
+    const float left = x - (width / 2.0f) + vertPadding;
+    if (!this->text.empty())
+    {
+        textRen->renderText(text, left, y - maxHeight / 2.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+    }
 }
 
-bool Button::hasInBounds(float x, float y) {
+bool Button::hasInBounds(float x, float y)
+{
     const float halfWidth  = this->width / 2.0f;
     const float halfHeight = this->height / 2.0f;
 

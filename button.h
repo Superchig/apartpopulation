@@ -2,7 +2,10 @@
 #define BUTTON_H
 
 #include "texture_2d.h"
+
+#include <functional>
 #include "sprite_renderer.h"
+#include "text_renderer.h"
 
 class Button
 {
@@ -15,9 +18,17 @@ class Button
 
     Texture2D *texture;
     SpriteRenderer *spriteRenderer;
+    TextRenderer *textRen;
+    
+    std::string text;
+    float vertPadding;
+    
+    // TODO: Clean up button callback syntax
+    std::function<void(Button *button)> callback;
 
     Button(float x, float y, int width, int height, Texture2D *texture,
-                   SpriteRenderer *spriteRenderer);
+           SpriteRenderer *spriteRenderer, TextRenderer *textRen,
+           std::string text = std::string(), float vertPadding = 0.0f);
 
     void draw();
     bool hasInBounds(float x, float y);

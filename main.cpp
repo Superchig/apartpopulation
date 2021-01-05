@@ -18,12 +18,16 @@
 #include "texture_2d.h"
 #include "sprite_renderer.h"
 #include "button.h"
+#include "historical_figure.h"
 
 Game Game::main;
 
 float eyeChange(float eyeZ) { return 10.0f * Game::main.zoomFactor; }
 
 void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
+
+void advanceMonthCallback(Button *button);
+void syncPopTable(Table &popTable);
 
 int main()
 {
@@ -110,29 +114,32 @@ int main()
                   34 * 10,
                   10 * 10,
                   &buttonNormal,
-                  &spriteRen};
+                  &spriteRen,
+                  &textRen,
+                  "Pass Month",
+                  34 * 10 * 0.25f};
+    button.callback = advanceMonthCallback;
     Game::main.buttons.push_back(&button);
+    
+    // Set up initial noble population
+    // -------------------------------
+    for (int i = 0; i < 5; i++)
+    {
+        Game::main.livingFigures.push_back(HistoricalFigure());
+    }
 
     // Initialize and set up table
-    // ------------------------------------
-    Table spreadTable(-200.0f, 300.0f, 5, &textRen, &lineRen);
+    // ---------------------------
+    Table spreadTable(-200.0f, 300.0f, Game::main.livingFigures.size() + 1,
+                                   &textRen, &lineRen);
+    Game::main.spreadTable = &spreadTable;
     spreadTable.setColWidth(0, 400);
     spreadTable.setColWidth(1, 200);
     spreadTable.setItem(0, 0, "Name");
     spreadTable.setItem(0, 1, "Age");
-
-    spreadTable.setItem(1, 0, "Noble 1");
-    spreadTable.setItem(1, 1, "30");
-
-    spreadTable.setItem(2, 0, "Noble 2");
-    spreadTable.setItem(2, 1, "52");
-
-    spreadTable.setItem(3, 0, "Noble 3");
-    spreadTable.setItem(3, 1, "22");
-
-    spreadTable.setItem(4, 0, "A line was skipped!");
-    spreadTable.setItem(4, 1, "Ten");
     
+    syncPopTable(spreadTable);
+
     glCheckError();
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -257,6 +264,12 @@ int main()
         Game::main.mouseX = worldMouse.x;
         Game::main.mouseY = worldMouse.y;
         
+        // The previous month has already happened and this month is yet to happen.
+        const std::string date = "Year: " + std::to_string(Game::main.date.year)
+            + ", month: " + std::to_string(Game::main.date.month);
+        textRen.renderText(date, -640.0f, Game::main.window_height / 2.0f - 32.0f * 3.0f,
+                           1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+        
         spriteRen.drawSprite(container, glm::vec2(Game::main.playerX, Game::main.playerY),
                              glm::vec2(200.0f, 200.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
         
@@ -281,9 +294,56 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
         {
             if (button->hasInBounds(Game::main.mouseX, Game::main.mouseY))
             {
-                std::cout << "Left mouse pressed a BUTTON at " << Game::main.mouseX
-                          << ", " << Game::main.mouseY << std::endl;
+                // std::cout << "Left mouse pressed a BUTTON at " << Game::main.mouseX
+                //           << ", " << Game::main.mouseY << std::endl;
+                
+                button->callback(button);
+                break;
             }
         }
+    }
+}
+
+void advanceMonthCallback(Button *button)
+{
+    // Advance the simulation
+    // ----------------------
+    for (HistoricalFigure &figure : Game::main.livingFigures)
+    {
+        // std::cout << figure.name << "'s birth day: year " << figure.birthDay.year << ", month " << figure.birthDay.month << std::endl;
+        
+        if (figure.birthDay.month == Game::main.date.month && figure.birthDay.year != Game::main.date.year)
+        {
+            figure.age++;
+            std::cout << figure.name << " celebrates their birthday, turning "
+                      << figure.age << "." << std::endl;
+        }
+    }
+    
+    // Update table UI
+    // ---------------
+    syncPopTable(*Game::main.spreadTable);
+    
+    // Update the actual month
+    // -----------------------
+    if (Game::main.date.month >= DEC)
+    {
+        Game::main.date.month = JAN;
+        Game::main.date.year++;
+    }
+    else
+    {
+        Game::main.date.month = (Month) (Game::main.date.month + 1);
+    }
+}
+
+void syncPopTable(Table &popTable)
+{
+    for (int i = 0; i < Game::main.livingFigures.size(); i++)
+    {
+        const HistoricalFigure &figure = Game::main.livingFigures[i];
+        
+        popTable.setItem(i + 1, 0, figure.name);
+        popTable.setItem(i + 1, 1, std::to_string(figure.age));
     }
 }
