@@ -41,7 +41,6 @@ HistoricalFigure::HistoricalFigure(const std::string& name, int age) : Historica
     this->age = age;
 }
 
-
 std::string HistoricalFigure::getSpouseName() const
 {
     return spouse == nullptr ? "No Spouse" : spouse->name;

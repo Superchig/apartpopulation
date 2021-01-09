@@ -109,7 +109,7 @@ int main()
 
     glCheckError();
 
-    Button button{-0.25f * Game::main.window_width,
+    Button button{-1,
                   -0.25f * Game::main.window_height,
                   34 * 10,
                   10 * 10,
@@ -118,6 +118,7 @@ int main()
                   &textRen,
                   "Pass Month",
                   34 * 10 * 0.25f};
+    button.x = (button.width - Game::main.window_width) / 2.0f;
     button.callback = advanceMonthCallback;
     Game::main.buttons.push_back(&button);
     
@@ -340,11 +341,21 @@ void advanceMonthCallback(Button *button)
     {
         // std::cout << figure.name << "'s birth day: year " << figure.birthDay.year << ", month " << figure.birthDay.month << std::endl;
         
+        // Advance birthday if necessary
         if (figure->birthDay.month == Game::main.date.month && figure->birthDay.year != Game::main.date.year)
         {
             figure->age++;
             // std::cout << figure->name << " celebrates their birthday, turning "
             //           << figure.age << "." << std::endl;
+        }
+        
+        // DEBUG: Check that marriages are perfectly 1-to-1
+        if (figure->spouse != nullptr && figure != figure->spouse->spouse)
+        {
+            HistoricalFigure *spouse = figure->spouse;
+            HistoricalFigure *thirdSpouse = figure->spouse->spouse;
+            std::cout << "ERROR: " << figure->name << " is married to " << spouse->name
+                      << ", who is married to " << thirdSpouse->name << std::endl;
         }
     }
     
@@ -362,9 +373,10 @@ void advanceMonthCallback(Button *button)
     {
         HistoricalFigure *figure = marriageEligible[i];
         HistoricalFigure *spouse = nullptr;
+        // auto figureIterator = marriageEligible.begin() + i;
         auto spouseIterator = marriageEligible.begin(); // Used for removing from vector
         
-        for (auto it = marriageEligible.begin(); it != marriageEligible.end(); it++)
+        for (auto it = marriageEligible.begin() + i; it != marriageEligible.end(); it++)
         {
             HistoricalFigure *possibleSpouse = *it;
             if (possibleSpouse->sex != figure->sex)
@@ -385,7 +397,7 @@ void advanceMonthCallback(Button *button)
             std::cout << figure->name << " and " << spouse->name << " become happily married!" << std::endl;
         }
     }
-    
+
     // Update table UI
     // ---------------
     syncPopTable(*Game::main.spreadTable);

@@ -19,6 +19,7 @@
 [x] Give nobles spouses
 
 # Current Goal
+- Add scrollbars/render text more efficiently
 - Allow nobles to give birth and have kids, as well as to die of old age
 
 # Future Programming Ideas
