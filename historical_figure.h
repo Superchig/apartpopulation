@@ -1,6 +1,7 @@
 #ifndef HISTORICAL_FIGURE_H
 
 #include <string>
+#include <vector>
 #include "calendar.h"
 
 enum PoliticalStrategy
@@ -31,6 +32,7 @@ class HistoricalFigure
     int         age; // in years
     Sex         sex;
     int         prestige;
+    int         desiredKids;
 
     PoliticalStrategy politicalStrategy;
     AppointStrategy   appointStrategy;
@@ -38,6 +40,8 @@ class HistoricalFigure
     HistoricalFigure *parent1;
     HistoricalFigure *parent2;
     HistoricalFigure *spouse;
+    
+    std::vector<HistoricalFigure *> kids;
     
     HistoricalFigure();
     HistoricalFigure(int age);

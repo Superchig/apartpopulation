@@ -30,7 +30,9 @@ set(BASE_SRCS
     historical_figure.h
     historical_figure.cpp
     calendar.h
-    calendar.cpp)
+    calendar.cpp
+    easy_rand.h
+    easy_rand.cpp)
 
 add_executable(apart-population ${BASE_SRCS})
 

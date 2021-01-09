@@ -15,6 +15,14 @@ Table::Table(float xPos, float yPos, int rows, TextRenderer *textRen,
 
 void Table::setItem(int row, int col, std::string value)
 {
+#ifndef NDEBUG
+    if (row >= data.size())
+    {
+        std::cout << "ERROR::TABLE: Tried to change value at row " << row << " when number of rows is " << data.size() << std::endl;
+        return;
+    }
+#endif
+    
     data[row][col] = value;
 }
 

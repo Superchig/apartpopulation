@@ -19,6 +19,7 @@
 #include "sprite_renderer.h"
 #include "button.h"
 #include "historical_figure.h"
+#include "easy_rand.h"
 
 Game Game::main;
 
@@ -124,7 +125,7 @@ int main()
     
     // Set up initial noble population
     // -------------------------------
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 20; i++)
     {
         Game::main.livingFigures.push_back(new HistoricalFigure(18));
     }
@@ -337,8 +338,9 @@ void advanceMonthCallback(Button *button)
     // Advance the simulation
     // ----------------------
 
-    for (HistoricalFigure *figure : Game::main.livingFigures)
+    for (int i = 0; i < Game::main.livingFigures.size(); i++)
     {
+        HistoricalFigure *figure = Game::main.livingFigures[i];
         // std::cout << figure.name << "'s birth day: year " << figure.birthDay.year << ", month " << figure.birthDay.month << std::endl;
         
         // Advance birthday if necessary
@@ -349,14 +351,51 @@ void advanceMonthCallback(Button *button)
             //           << figure.age << "." << std::endl;
         }
         
-        // DEBUG: Check that marriages are perfectly 1-to-1
-        if (figure->spouse != nullptr && figure != figure->spouse->spouse)
+        if (figure->spouse != nullptr)
         {
             HistoricalFigure *spouse = figure->spouse;
-            HistoricalFigure *thirdSpouse = figure->spouse->spouse;
-            std::cout << "ERROR: " << figure->name << " is married to " << spouse->name
-                      << ", who is married to " << thirdSpouse->name << std::endl;
+            
+            // DEBUG: Check that marriages are perfectly 1-to-1
+            if (figure != figure->spouse->spouse)
+            {
+                HistoricalFigure *thirdSpouse = figure->spouse->spouse;
+                std::cout << "ERROR: " << figure->name << " is married to " << spouse->name
+                          << ", who is married to " << thirdSpouse->name << std::endl;
+            }
+            
+            // Have kids
+            if (figure->kids.size() < figure->desiredKids)
+            {
+                HistoricalFigure *newKid = new HistoricalFigure(0);
+                newKid->parent1 = figure;
+                newKid->parent2 = spouse;
+                std::cout << "newKid's name: " << newKid->name << std::endl;
+                
+                figure->kids.push_back(newKid);
+                spouse->kids.push_back(newKid);
+                Game::main.livingFigures.push_back(newKid);
+            }
+            
+            // Possibly die
+            if (figure->age >= 80)
+            {
+                int dieRoll = randInRange(1, 4);
+                
+                if (dieRoll == 1)
+                {
+                    auto figureIt = Game::main.livingFigures.begin() + i;
+                    Game::main.livingFigures.erase(figureIt);
+                    Game::main.deadFigures.push_back(figure);
+                    
+                    std::cout << figure->name << " has died of old age. May they rest in peace." << std::endl;
+                }
+            }
         }
+    }
+    
+    if (Game::main.livingFigures.size() > Game::main.spreadTable->data.size())
+    {
+        Game::main.spreadTable->data.resize(Game::main.spreadTable->data.size() * 2);
     }
     
     // Find everyone eligible for marriage up-front

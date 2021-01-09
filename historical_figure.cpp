@@ -2,9 +2,7 @@
 
 #include <random>
 #include "game.h"
-
-static std::random_device rd;
-static std::mt19937 mt(rd());
+#include "easy_rand.h"
 
 int HistoricalFigure::count = 0;
 
@@ -12,9 +10,9 @@ int randSkill();
 int randInRange(int min, int max);
 
 HistoricalFigure::HistoricalFigure(const std::string &name)
-    : id(++count), name(name), birthDay(Game::main.date), age(0),  prestige(0), 
+    : id(++count), name(name), birthDay(Game::main.date), age(0),  prestige(0), desiredKids(2),
       politicalStrategy(Wastrel), appointStrategy(Random), parent1(nullptr), parent2(nullptr),
-      spouse(nullptr)
+      spouse(nullptr), kids()
 {
     this->art = randSkill();
     this->intrigue = randSkill();
@@ -46,14 +44,7 @@ std::string HistoricalFigure::getSpouseName() const
     return spouse == nullptr ? "No Spouse" : spouse->name;
 }
 
-
 int randSkill()
 {
     return randInRange(1, 6) * randInRange(1, 6) * randInRange(1, 6);
-}
-
-int randInRange(int min, int max)
-{
-    std::uniform_int_distribution myDist{min, max};
-    return myDist(mt);
 }
