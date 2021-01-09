@@ -5,3 +5,4 @@ CMakeLists.txt.user
 *.kate-swp
 .vs/
 CMakeSettings.json
+vgcore*

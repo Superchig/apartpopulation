@@ -27,7 +27,7 @@ void Table::draw()
     // In height (in pixels) of font's bitmap
     const float DOWN_PADDING = 25.0f;
     // const int   COL_WIDTH    = 400; // In font pixels
-    const int   COL_PADDING  = 50;  // In font pixels
+    const int   COL_PADDING  = 0;  // In font pixels
 
     int maxHeight = -1;
     for (auto const &[ch, info] : textRen->characters)

@@ -13,6 +13,13 @@ enum AppointStrategy
     Skill, Faction, Loyalty, Random
 };
 
+enum Sex
+{
+    Male, Female
+};
+
+static std::string sexStrings[] = { "M", "F" };
+
 class HistoricalFigure
 {
   public:
@@ -22,14 +29,22 @@ class HistoricalFigure
     std::string name;
     Date        birthDay; // Technically doesn't hold a day yet
     int         age; // in years
+    Sex         sex;
+    int         prestige;
 
     PoliticalStrategy politicalStrategy;
     AppointStrategy   appointStrategy;
-
-    int prestige;
+    
+    HistoricalFigure *parent1;
+    HistoricalFigure *parent2;
+    HistoricalFigure *spouse;
     
     HistoricalFigure();
+    HistoricalFigure(int age);
     HistoricalFigure(const std::string &name);
+    HistoricalFigure(const std::string &name, int age);
+    
+    std::string getSpouseName() const;
     
 #pragma region Skills
     int art;
