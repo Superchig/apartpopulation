@@ -17,10 +17,10 @@
 [x] Generate random numbers better
 [x] Allocate memory for nobles on the heap
 [x] Give nobles spouses
+[x] Allow nobles to give birth and have kids, as well as to die of old age (tentatively)
 
 # Current Goal
 - Add scrollbars/render text more efficiently
-- Allow nobles to give birth and have kids, as well as to die of old age
 
 # Future Programming Ideas
 - Modern C++ (C++11, C++14, C++17, C++20)

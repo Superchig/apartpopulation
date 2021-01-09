@@ -28,6 +28,8 @@ float eyeChange(float eyeZ) { return 10.0f * Game::main.zoomFactor; }
 void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 
 void advanceMonthCallback(Button *button);
+void advanceYearCallback(Button *button);
+void advanceMonth();
 void syncPopTable(Table &popTable);
 
 int main()
@@ -123,9 +125,23 @@ int main()
     button.callback = advanceMonthCallback;
     Game::main.buttons.push_back(&button);
     
+    Button passYearButton{-1,
+                          -1,
+                          34 * 10,
+                          10 * 10,
+                          &buttonNormal,
+                          &spriteRen,
+                          &textRen,
+                          "Pass Year",
+                          34 * 10 * 0.25f};
+    passYearButton.x = (passYearButton.width - Game::main.window_width) / 2.0f;
+    passYearButton.y = button.y - button.height;
+    passYearButton.callback = advanceYearCallback;
+    Game::main.buttons.push_back(&passYearButton);
+    
     // Set up initial noble population
     // -------------------------------
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 100; i++)
     {
         Game::main.livingFigures.push_back(new HistoricalFigure(18));
     }
@@ -269,17 +285,31 @@ int main()
         Game::main.mouseX = worldMouse.x;
         Game::main.mouseY = worldMouse.y;
         
+        // Display simulation info
+        // -----------------------
         // This month has just happened
         const std::string date = "Year: " + std::to_string(Game::main.date.year)
             + ", month: " + std::to_string(Game::main.date.month);
         textRen.renderText(date, -640.0f, Game::main.window_height / 2.0f - 32.0f * 3.0f,
                            1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         
+        const std::string popCount = "Living nobles: " + std::to_string(Game::main.livingFigures.size());
+        textRen.renderText(popCount, -640.0f, Game::main.window_height / 2.0f - 32.0f * 4.0f,
+                           1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+        
+        const std::string marriageEligible = "Marriage eligible: " + std::to_string(Game::main.marriageEligible);
+        textRen.renderText(marriageEligible, -640.0f, Game::main.window_height / 2.0f - 32.0f * 5.0f,
+                           1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+        
         spriteRen.drawSprite(container, glm::vec2(Game::main.playerX, Game::main.playerY),
                              glm::vec2(200.0f, 200.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
         
         spreadTable.draw();
-        button.draw();
+        
+        for (Button *b : Game::main.buttons)
+        {
+            b->draw();
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -322,6 +352,20 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 }
 
 void advanceMonthCallback(Button *button)
+{
+    advanceMonth();
+}
+
+void advanceYearCallback(Button* button)
+{
+    for (int i = 0; i < 12; i++)
+    {
+        advanceMonth();
+    }
+}
+
+
+void advanceMonth()
 {
     // Update the actual month
     // -----------------------
@@ -366,34 +410,44 @@ void advanceMonthCallback(Button *button)
             // Have kids
             if (figure->kids.size() < figure->desiredKids)
             {
-                HistoricalFigure *newKid = new HistoricalFigure(0);
-                newKid->parent1 = figure;
-                newKid->parent2 = spouse;
-                std::cout << "newKid's name: " << newKid->name << std::endl;
-                
-                figure->kids.push_back(newKid);
-                spouse->kids.push_back(newKid);
-                Game::main.livingFigures.push_back(newKid);
-            }
-            
-            // Possibly die
-            if (figure->age >= 80)
-            {
-                int dieRoll = randInRange(1, 4);
-                
+                int dieRoll = randInRange(1, 48);
                 if (dieRoll == 1)
                 {
-                    auto figureIt = Game::main.livingFigures.begin() + i;
-                    Game::main.livingFigures.erase(figureIt);
-                    Game::main.deadFigures.push_back(figure);
+                    HistoricalFigure *newKid = new HistoricalFigure(0);
+                    newKid->parent1 = figure;
+                    newKid->parent2 = spouse;
+                    std::cout << "newKid's name: " << newKid->name << std::endl;
                     
-                    std::cout << figure->name << " has died of old age. May they rest in peace." << std::endl;
+                    figure->kids.push_back(newKid);
+                    spouse->kids.push_back(newKid);
+                    Game::main.livingFigures.push_back(newKid);
                 }
+            }
+        }
+        
+        // Possibly die
+        if (figure->age >= 80)
+        {
+            int dieRoll = randInRange(1, 48);
+            
+            if (dieRoll == 1)
+            {
+                auto figureIt = Game::main.livingFigures.begin() + i;
+                Game::main.livingFigures.erase(figureIt);
+                Game::main.deadFigures.push_back(figure);
+                
+                if (figure->spouse != nullptr)
+                {
+                    figure->spouse->spouse = nullptr;
+                }
+                
+                std::cout << figure->name << " has died of old age. May they rest in peace." << std::endl;
             }
         }
     }
     
-    if (Game::main.livingFigures.size() > Game::main.spreadTable->data.size())
+    // Resize the population UI table's internal vector as needed
+    if (Game::main.livingFigures.size() >= Game::main.spreadTable->data.size())
     {
         Game::main.spreadTable->data.resize(Game::main.spreadTable->data.size() * 2);
     }
@@ -407,8 +461,9 @@ void advanceMonthCallback(Button *button)
             marriageEligible.push_back(figure);
         }
     }
-    std::cout << "marriageEligible.size(): " << marriageEligible.size() << std::endl;
-    for (int i = 0; i < marriageEligible.size(); i++) // Don't operate if there's only one person eligible for marriage
+    // std::cout << "marriageEligible.size(): " << marriageEligible.size() << std::endl;
+    Game::main.marriageEligible = marriageEligible.size();
+    for (int i = 0; i < marriageEligible.size(); i++)
     {
         HistoricalFigure *figure = marriageEligible[i];
         HistoricalFigure *spouse = nullptr;
@@ -444,6 +499,15 @@ void advanceMonthCallback(Button *button)
 
 void syncPopTable(Table &popTable)
 {
+    // Empty the table's current info first
+    for (int i = 1; i < popTable.data.size(); i++)
+    {
+        for (int j = 0; j < popTable.data[0].size(); j++)
+        {
+            popTable.setItem(i, j, "");
+        }
+    }
+    
     for (int i = 0; i < Game::main.livingFigures.size(); i++)
     {
         const HistoricalFigure *figure = Game::main.livingFigures[i];

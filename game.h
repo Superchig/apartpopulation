@@ -39,6 +39,8 @@ class Game
     std::vector<HistoricalFigure *> livingFigures;
     std::vector<HistoricalFigure *> deadFigures;
     
+    int marriageEligible;
+    
     Date date = {1, JAN};
 #pragma endregion
     

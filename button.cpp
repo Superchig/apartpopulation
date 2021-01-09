@@ -30,6 +30,7 @@ void Button::draw()
         }
     }
     
+    // TODO: Dynamically calculate the left increase, rather than manually assigning vertical padding
     const float left = x - (width / 2.0f) + vertPadding;
     if (!this->text.empty())
     {
