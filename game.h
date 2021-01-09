@@ -36,8 +36,8 @@ class Game
     glm::mat4 projection;
     
 #pragma region Simulation
-    std::vector<HistoricalFigure> livingFigures;
-    std::vector<HistoricalFigure> deadFigures;
+    std::vector<HistoricalFigure *> livingFigures;
+    std::vector<HistoricalFigure *> deadFigures;
     
     Date date = {1, JAN};
 #pragma endregion

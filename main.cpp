@@ -125,7 +125,7 @@ int main()
     // -------------------------------
     for (int i = 0; i < 10; i++)
     {
-        Game::main.livingFigures.push_back(HistoricalFigure(18));
+        Game::main.livingFigures.push_back(new HistoricalFigure(18));
     }
 
     // Initialize and set up table
@@ -267,7 +267,7 @@ int main()
         Game::main.mouseX = worldMouse.x;
         Game::main.mouseY = worldMouse.y;
         
-        // This month ahs just happened
+        // This month has just happened
         const std::string date = "Year: " + std::to_string(Game::main.date.year)
             + ", month: " + std::to_string(Game::main.date.month);
         textRen.renderText(date, -640.0f, Game::main.window_height / 2.0f - 32.0f * 3.0f,
@@ -283,6 +283,18 @@ int main()
         glfwPollEvents();
 
         glCheckError();
+    }
+    
+    // Deallocate and free
+    // -------------------
+    for (const HistoricalFigure *figure : Game::main.livingFigures)
+    {
+        delete figure;
+    }
+    
+    for (const HistoricalFigure *figure : Game::main.deadFigures)
+    {
+        delete figure;
     }
 
     glfwTerminate();
@@ -324,25 +336,25 @@ void advanceMonthCallback(Button *button)
     // Advance the simulation
     // ----------------------
 
-    for (HistoricalFigure &figure : Game::main.livingFigures)
+    for (HistoricalFigure *figure : Game::main.livingFigures)
     {
         // std::cout << figure.name << "'s birth day: year " << figure.birthDay.year << ", month " << figure.birthDay.month << std::endl;
         
-        if (figure.birthDay.month == Game::main.date.month && figure.birthDay.year != Game::main.date.year)
+        if (figure->birthDay.month == Game::main.date.month && figure->birthDay.year != Game::main.date.year)
         {
-            figure.age++;
-            // std::cout << figure.name << " celebrates their birthday, turning "
+            figure->age++;
+            // std::cout << figure->name << " celebrates their birthday, turning "
             //           << figure.age << "." << std::endl;
         }
     }
     
     // Find everyone eligible for marriage up-front
     std::vector<HistoricalFigure *> marriageEligible;
-    for (HistoricalFigure &figure : Game::main.livingFigures)
+    for (HistoricalFigure *figure : Game::main.livingFigures)
     {
-        if (figure.age >= 18 && figure.spouse == nullptr)
+        if (figure->age >= 18 && figure->spouse == nullptr)
         {
-            marriageEligible.push_back(&figure);
+            marriageEligible.push_back(figure);
         }
     }
     std::cout << "marriageEligible.size(): " << marriageEligible.size() << std::endl;
@@ -383,12 +395,11 @@ void syncPopTable(Table &popTable)
 {
     for (int i = 0; i < Game::main.livingFigures.size(); i++)
     {
-        const HistoricalFigure &figure = Game::main.livingFigures[i];
+        const HistoricalFigure *figure = Game::main.livingFigures[i];
         
-        popTable.setItem(i + 1, 0, figure.name);
-        popTable.setItem(i + 1, 1, std::to_string(figure.age));
-        popTable.setItem(i + 1, 2, sexStrings[figure.sex]);
-        popTable.setItem(i + 1, 3, figure.getSpouseName());
+        popTable.setItem(i + 1, 0, figure->name);
+        popTable.setItem(i + 1, 1, std::to_string(figure->age));
+        popTable.setItem(i + 1, 2, sexStrings[figure->sex]);
+        popTable.setItem(i + 1, 3, figure->getSpouseName());
     }
 }
-

@@ -10,15 +10,15 @@
 - Display months by name
 - Rewrite tables to be rendered in world space
 - Render a console in OpenGL with output
-- Allocate memory for nobles on the heap
 
 ## Finished todos
 [x] Show passing of a month
 [x] Show and update the ages of nobles
 [x] Generate random numbers better
+[x] Allocate memory for nobles on the heap
+[x] Give nobles spouses
 
 # Current Goal
-- Give nobles marriage partners
 - Allow nobles to give birth and have kids, as well as to die of old age
 
 # Future Programming Ideas
