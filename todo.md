@@ -12,15 +12,15 @@
 - Render a console in OpenGL with output
 
 ## Finished todos
-[x] Show passing of a month
-[x] Show and update the ages of nobles
-[x] Generate random numbers better
-[x] Allocate memory for nobles on the heap
-[x] Give nobles spouses
-[x] Allow nobles to give birth and have kids, as well as to die of old age (tentatively)
+- [x] Show passing of a month
+- [x] Show and update the ages of nobles
+- [x] Generate random numbers better
+- [x] Allocate memory for nobles on the heap
+- [x] Give nobles spouses
+- [x] Allow nobles to give birth and have kids, as well as to die of old age (tentatively)
 
 # Current Goal
-- Add scrollbars/render text more efficiently
+- Add scrollbars/render text or tables more efficiently
 
 # Future Programming Ideas
 - Modern C++ (C++11, C++14, C++17, C++20)
@@ -43,3 +43,14 @@
 - Race that reproduces by "cellular division" (members of the race are clones,
   with minor mutation of a previous member)
 - Polygamy?
+- Natural selection-esque personality traits
+	- Recklessness
+		- Likeliness to launch coups or attempt to seize a position
+	- FactionLoyalty
+		- How hard/easy it is to get someone to leave a faction
+	- Clemency
+		- How likely someone is to punish someone after they try something against them
+		- Showing clemency should have certain benefits, while destroying your enemies
+		  will probably have obvious benefits of their own.
+	- Studiousness vs Activity (different name)
+		- How often someone will try to improve their skills vs do things

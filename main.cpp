@@ -141,7 +141,7 @@ int main()
     
     // Set up initial noble population
     // -------------------------------
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 20; i++)
     {
         Game::main.livingFigures.push_back(new HistoricalFigure(18));
     }
