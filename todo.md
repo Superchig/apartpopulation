@@ -6,10 +6,10 @@
   - Maintains a font pixel size and a scale
   - Has width and height and center coordinates
   - Automatically pushes words to a new line
-- Decide how to implement custom button functionality
 - Display months by name
 - Rewrite tables to be rendered in world space
 - Render a console in OpenGL with output
+- Render all text of the same font and size in one draw call
 
 ## Finished todos
 - [x] Show passing of a month
@@ -20,6 +20,7 @@
 - [x] Allow nobles to give birth and have kids, as well as to die of old age (tentatively)
 
 # Current Goal
+- Use specific texels for font rendering
 - Add scrollbars/render text or tables more efficiently
 
 # Future Programming Ideas

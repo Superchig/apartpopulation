@@ -364,7 +364,6 @@ void advanceYearCallback(Button* button)
     }
 }
 
-
 void advanceMonth()
 {
     // Update the actual month
