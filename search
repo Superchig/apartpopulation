@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if which rg > /dev/null; then
+	rg "$1" $(find -type f ! -path './libs/*' ! -path './stb_image.h' ! -path './.git/*')
+else
+	grep "$1" $(find -type f ! -path './libs/*' ! -path './stb_image.h' ! -path './.git/*')
+fi
