@@ -3,10 +3,11 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <cstring>
+#include <algorithm>
 #include "check_error.h"
 #include "game.h"
 
-QuadRenderer::QuadRenderer() : quadIndex(0), shader("shaders/quad.vert", "shaders/quad.frag")
+QuadRenderer::QuadRenderer() : batches(2), shader("shaders/quad.vert", "shaders/quad.frag")
 {
     GLuint quadIBO;
     glCheckError();
@@ -21,7 +22,7 @@ QuadRenderer::QuadRenderer() : quadIndex(0), shader("shaders/quad.vert", "shader
     
     glCheckError();
     
-    glBufferData(GL_ARRAY_BUFFER, MAX_QUADS * sizeof(AttributesQuad), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, Batch::MAX_QUADS * sizeof(AttributesQuad), nullptr, GL_DYNAMIC_DRAW);
     
     glCheckError();
     
@@ -45,8 +46,8 @@ QuadRenderer::QuadRenderer() : quadIndex(0), shader("shaders/quad.vert", "shader
     //     4, 5, 7,
     //     5, 6, 7
     // };
-    unsigned int quadIndices[MAX_QUADS * 6];
-    for (int i = 0; i < MAX_QUADS; i++)
+    unsigned int quadIndices[Batch::MAX_QUADS * 6];
+    for (int i = 0; i < Batch::MAX_QUADS; i++)
     {
         const int rightOffset = 4 * i;
         const int leftOffset = 6 * i;
@@ -64,19 +65,64 @@ QuadRenderer::QuadRenderer() : quadIndex(0), shader("shaders/quad.vert", "shader
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    
+    glUseProgram(shader.ID);
+    GLint location = glGetUniformLocation(shader.ID, "batchQuadTextures");
+    int samplers[MAX_TEXTURES_PER_BATCH];
+    for (int i = 0; i < MAX_TEXTURES_PER_BATCH; i++)
+    {
+        samplers[i] = i;
+    }
+    glUniform1iv(location, MAX_TEXTURES_PER_BATCH, samplers);
 }
 
-// void QuadRenderer::prepareQuad(glm::vec2 position, float width, float height,
-//                                glm::vec4 rgb, float textureIndex)
-// {
-//     AttributesQuad *quad = &this->quadBuffer[quadIndex];
-// }
-
-void QuadRenderer::prepareQuad(AttributesQuad &input)
+void QuadRenderer::prepareQuad(glm::vec2 position, float width, float height,
+                               glm::vec4 rgb, int textureID)
 {
-    quadBuffer[quadIndex] = input;
-    // memcpy(&quadBuffer[quadIndex], &input, sizeof(input));
-    quadIndex++;
+    // Figure out which batch should be written to
+    // -------------------------------------------
+    auto result = std::find(textureIDs.begin(), textureIDs.end(), textureID);
+    int location;
+    if (result != textureIDs.end())
+    {
+        location = textureIDs.size();
+        textureIDs.push_back(textureID);
+    }
+    else
+    {
+        location = result - textureIDs.begin();
+    }
+    
+    int batchIndex = location / MAX_TEXTURES_PER_BATCH;
+    float glTextureIndex = location % MAX_TEXTURES_PER_BATCH;
+    Batch &batch = batches[batchIndex];
+    
+    // Initialize the data for the quad
+    // --------------------------------
+    AttributesQuad &quad = batch.quadBuffer[batch.quadIndex];
+    batch.quadIndex++;
+    
+    const float rightX = position.x + (width / 2.0f);
+    const float leftX = position.x - (width / 2.0f);
+    const float topY = position.y + (height / 2.0f);
+    const float bottomY = position.y - (height / 2.0f);
+    
+    const float r = rgb.x;
+    const float g = rgb.y;
+    const float b = rgb.z;
+    const float a = rgb.w;
+    
+    quad.topRight    = {rightX, topY,      r, g, b, a,   1.0, 1.0,    glTextureIndex};
+    quad.bottomRight = {rightX, bottomY,   r, g, b, a,   1.0, 0.0,    glTextureIndex};
+    quad.bottomLeft  = {leftX,  bottomY,   r, g, b, a,   0.0, 0.0,    glTextureIndex};
+    quad.topLeft     = {leftX,  topY,      r, g, b, a,   0.0, 1.0,    glTextureIndex};
+}
+
+void QuadRenderer::prepareQuad(int batchIndex, AttributesQuad &input)
+{
+    Batch &batch = batches[batchIndex];
+    batch.quadBuffer[batch.quadIndex] = input;
+    batch.quadIndex++;
 }
 
 void QuadRenderer::sendToGL()
@@ -84,20 +130,36 @@ void QuadRenderer::sendToGL()
     shader.use();
     shader.setMatrix("MVP", Game::main.projection * Game::main.view);
     
-    GLint location = glGetUniformLocation(shader.ID, "batchQuadTextures");
-    int samplers[2] = {0, 1};
-    glUniform1iv(location, 2, samplers);
+    int currentBatch = 0;
+    int texUnit = 0;
+    for (int i = 0; i < textureIDs.size(); i++)
+    {
+        // std::cout << "texUnit: " << texUnit << std::endl;
+        
+        glActiveTexture(GL_TEXTURE0 + texUnit);
+        glBindTexture(GL_TEXTURE_2D, textureIDs[i]);
+        
+        if (texUnit >= MAX_TEXTURES_PER_BATCH - 1)
+        {
+            flush(batches[currentBatch]);
+            
+            currentBatch++;
+            texUnit = 0;
+        }
+        else
+        {
+            texUnit++;
+        }
+    }
     
-    glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, texture1->ID);
-    glActiveTexture(GL_TEXTURE0 + 1);
-    glBindTexture(GL_TEXTURE_2D, texture2->ID);
-    // glBindSampler(0, texture1->ID);
-    // glBindSampler(1, texture2->ID);
-    
+    flush(batches[currentBatch]);
+}
+
+void QuadRenderer::flush(const Batch& batch)
+{
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // Must bind VBO before glBufferSubData
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadIBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, quadIndex * sizeof(AttributesQuad), &quadBuffer[0]);
-    glDrawElements(GL_TRIANGLES, quadIndex * 6, GL_UNSIGNED_INT, nullptr);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, batch.quadIndex * sizeof(AttributesQuad), &batch.quadBuffer[0]);
+    glDrawElements(GL_TRIANGLES, batch.quadIndex * 6, GL_UNSIGNED_INT, nullptr);
 }

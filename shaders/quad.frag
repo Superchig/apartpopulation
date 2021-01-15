@@ -4,10 +4,13 @@ in vec2 texCoords;
 in float texIndex;
 out vec4 color;
 
-uniform sampler2D batchQuadTextures[2];
+// The size of this array is hard-coded,
+// and must be manually changed if the QuadRenderer's
+// corresponding constant is changed.
+uniform sampler2D batchQuadTextures[48];
 
 void main()
-{    
+{
     int index = int(texIndex);
     color = rgbaColor * texture(batchQuadTextures[index], texCoords);
     // color = vec4(rgbaColor);

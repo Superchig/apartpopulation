@@ -1,11 +1,14 @@
 #include "texture_2d.h"
 #include "stb_image.h"
 
+#include <iostream>
+
 Texture2D::Texture2D(const char *file, bool alpha, int filter)
     : width(0), height(0), internalFormat(GL_RGB), imageFormat(GL_RGB), wrapS(GL_REPEAT),
       wrapT(GL_REPEAT), filterMin(filter), filterMax(filter)
 {
     glGenTextures(1, &this->ID);
+    std::cout << "Texture ID from " << file << ": " << this->ID << std::endl;
     
     if (alpha)
     {

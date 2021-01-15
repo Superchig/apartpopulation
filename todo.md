@@ -18,9 +18,12 @@
 - [x] Allocate memory for nobles on the heap
 - [x] Give nobles spouses
 - [x] Allow nobles to give birth and have kids, as well as to die of old age (tentatively)
+- [x] Implement batch rendering (at least for quads)
 
 # Current Goal
-- Implement batch rendering (at least for quads)
+- Extend quad renderer to support "unlimited" textures, based off of texture
+  index
+- Render sprites and text with batch renderer
 - Add scrollbars/render text or tables more efficiently
 
 # Future Programming Ideas
