@@ -17,6 +17,7 @@
 #include "check_error.h"
 #include "texture_2d.h"
 #include "sprite_renderer.h"
+#include "quad_renderer.h"
 #include "button.h"
 #include "historical_figure.h"
 #include "easy_rand.h"
@@ -43,19 +44,9 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifndef NDEBUG
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-    // FIXME: Setup debug output with ARB_debug_output extension
-    // as per https://learnopengl.com/In-Practice/Debugging
-    // TODO: Move to GLEW (https://github.com/nigels-com/glew) to
-    // dynamically access extensions
 
-    // int flags;
-    // glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-    // if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
-    // {
-    //     std::cout << "Initializing debug!" << std::endl;
-    // }
 #endif
 
     glfwWindowHintString(GLFW_X11_CLASS_NAME, "OpenGL");
@@ -78,6 +69,21 @@ int main()
         std::cout << "Failed to initialize GLAD" << '\n';
         return -1;
     }
+
+#ifndef NDEBUG
+    int flags;
+    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    {
+        std::cout << "Initializing debug!" << std::endl;
+        
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
+        glDebugMessageCallback(glDebugOutput, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    }
+
+#endif
 
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
 
@@ -109,9 +115,9 @@ int main()
 
     Shader         spriteShader{"shaders/sprite.vert", "shaders/sprite.frag"};
     SpriteRenderer spriteRen{spriteShader};
-
+    
     glCheckError();
-
+    
     Button button{-1,
                   -0.25f * Game::main.window_height,
                   34 * 10,
@@ -155,7 +161,8 @@ int main()
     spreadTable.setColWidth(1, 100);
     spreadTable.setColWidth(2, 100);
     spreadTable.setColWidth(3, 300);
-    spreadTable.setItem(0, 0, "Name"); spreadTable.setItem(0, 1, "Age");
+    spreadTable.setItem(0, 0, "Name");
+    spreadTable.setItem(0, 1, "Age");
     spreadTable.setItem(0, 2, "Sex");
     spreadTable.setItem(0, 3, "Spouse");
     
@@ -164,6 +171,42 @@ int main()
     glCheckError();
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    
+    // Experimental quad rendering
+    // ---------------------------
+    
+    QuadRenderer quadRenderer;
+    quadRenderer.texture1 = &container;
+    Texture2D logh{"sprites/logh.png", true};
+    quadRenderer.texture2 = &logh;
+    Game::main.quadRenderer = &quadRenderer;
+    
+    constexpr int quadBufferCapacity = 10;
+    std::array<AttributesQuad, quadBufferCapacity> quadBuffer;
+    int quadIndex = 0;
+    
+    quadBuffer[quadIndex].topRight    = { 100.0,  100.0,    0.0, 1.0, 0.0, 1.0,   1.0, 1.0,    0.0};
+    quadBuffer[quadIndex].bottomRight = { 100.0, -100.0,    0.0, 1.0, 0.0, 1.0,   1.0, 0.0,    0.0};
+    quadBuffer[quadIndex].bottomLeft  = {-100.0, -100.0,    0.0, 1.0, 0.0, 1.0,   0.0, 0.0,    0.0};
+    quadBuffer[quadIndex].topLeft     = {-100.0,  100.0,    0.0, 1.0, 0.0, 1.0,   0.0, 1.0,    0.0};
+    Game::main.quadRenderer->prepareQuad(quadBuffer[quadIndex]);
+    quadIndex++;
+    
+    quadBuffer[quadIndex].topRight    = { 100.0 + 200.0f,  100.0,    0.0, 0.0, 1.0, 1.0,   1.0, 1.0,    0.0};
+    quadBuffer[quadIndex].bottomRight = { 100.0 + 200.0f, -100.0,    0.0, 0.0, 1.0, 1.0,   1.0, 0.0,    0.0};
+    quadBuffer[quadIndex].bottomLeft  = {-100.0 + 200.0f, -100.0,    0.0, 0.0, 1.0, 1.0,   0.0, 0.0,    0.0};
+    quadBuffer[quadIndex].topLeft     = {-100.0 + 200.0f,  100.0,    0.0, 0.0, 1.0, 1.0,   0.0, 1.0,    0.0};
+    Game::main.quadRenderer->prepareQuad(quadBuffer[quadIndex]);
+    quadIndex++;
+    
+    quadBuffer[quadIndex].topRight    = { 100.0,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 1.0,    1.0};
+    quadBuffer[quadIndex].bottomRight = { 100.0, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 0.0,    1.0};
+    quadBuffer[quadIndex].bottomLeft  = {-100.0, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 0.0,    1.0};
+    quadBuffer[quadIndex].topLeft     = {-100.0,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 1.0,    1.0};
+    Game::main.quadRenderer->prepareQuad(quadBuffer[quadIndex]);
+    quadIndex++;
+    
+    glCheckError();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -310,7 +353,9 @@ int main()
         {
             b->draw();
         }
-
+        
+        Game::main.quadRenderer->sendToGL();
+        
         glfwSwapBuffers(window);
         glfwPollEvents();
 

@@ -32,7 +32,9 @@ set(BASE_SRCS
     calendar.h
     calendar.cpp
     easy_rand.h
-    easy_rand.cpp)
+    easy_rand.cpp
+    quad_renderer.h
+    quad_renderer.cpp)
 
 add_executable(apart-population ${BASE_SRCS})
 

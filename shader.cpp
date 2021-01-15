@@ -12,7 +12,6 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath)
     // Ensure ifstream objects can throw exceptions:
     vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    
     try
     {
         // Open files
@@ -31,7 +30,7 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath)
     }
     catch (std::ifstream::failure e)
     {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << '\n';
+        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ in " << vertexPath << " or " << fragmentPath << '\n';
     }
     const char *vShaderCode = vertexCode.c_str();
     const char *fShaderCode = fragmentCode.c_str();
@@ -51,7 +50,7 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath)
     if (!success)
     {
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << '\n';
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED in " << vertexPath << "\n" << infoLog << '\n';
     }
     
     // Fragment shader
@@ -63,7 +62,7 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath)
     if (!success)
     {
         glGetShaderInfoLog(fragment, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << '\n';
+        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED in " << fragmentPath << "\n" << infoLog << '\n';
     }
     
     // Shader program

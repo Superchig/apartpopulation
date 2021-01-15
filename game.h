@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include "calendar.h"
+#include "quad_renderer.h"
 
 class HistoricalFigure;
 class SpriteRenderer;
@@ -34,6 +35,8 @@ class Game
 
     glm::mat4 view;
     glm::mat4 projection;
+    
+    QuadRenderer *quadRenderer;
     
 #pragma region Simulation
     std::vector<HistoricalFigure *> livingFigures;

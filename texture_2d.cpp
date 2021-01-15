@@ -12,6 +12,8 @@ Texture2D::Texture2D(const char *file, bool alpha, int filter)
         this->internalFormat = GL_RGBA;
         this->imageFormat = GL_RGBA;
     }
+    
+    stbi_set_flip_vertically_on_load(true);
 
     int imageWidth;
     int imageHeight;

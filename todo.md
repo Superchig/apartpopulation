@@ -20,7 +20,7 @@
 - [x] Allow nobles to give birth and have kids, as well as to die of old age (tentatively)
 
 # Current Goal
-- Use specific texels for font rendering
+- Implement batch rendering (at least for quads)
 - Add scrollbars/render text or tables more efficiently
 
 # Future Programming Ideas

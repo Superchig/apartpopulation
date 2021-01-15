@@ -10,6 +10,7 @@
 #include <string_view>
 #include FT_FREETYPE_H
 
+// TODO: Lowercase fields in its own commit
 struct Character
 {
     glm::vec2 Size; // Width, then height
