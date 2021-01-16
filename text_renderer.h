@@ -33,12 +33,11 @@ public:
     int                       atlasWidth;
     int                       atlasHeight;
     std::map<char, Character> characters;
-    Shader *                  shader;
     float                     quadRenderIndex;
     // glm::mat4                 view;
     // glm::mat4                 projection;
 
-    TextRenderer(const std::string &fontPath, Shader *fontShader, FT_UInt pixelSize);
+    TextRenderer(const std::string &fontPath, FT_UInt pixelSize);
     void renderText(std::string_view text, float x, float y, float scale,
                     glm::vec3 color);
     void renderTextMax(std::string_view text, float x, float y, float scale,

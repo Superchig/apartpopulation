@@ -7,7 +7,6 @@
 #include "quad_renderer.h"
 
 class HistoricalFigure;
-class SpriteRenderer;
 class Button;
 class Table;
 

@@ -1,16 +1,13 @@
 #include "button.h"
 #include "game.h"
-#include "sprite_renderer.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
 Button::Button(float x, float y, int width, int height, Texture2D *texture,
-               SpriteRenderer *spriteRenderer, TextRenderer *textRen,
-               std::string text, float vertPadding)
+               TextRenderer *textRen, std::string text, float vertPadding)
     : x(x), y(y), width(width), height(height), texture(texture),
-      spriteRenderer(spriteRenderer), textRen(textRen), text(text),
-      vertPadding(vertPadding)
+      textRen(textRen), text(text), vertPadding(vertPadding)
 {
 }
 

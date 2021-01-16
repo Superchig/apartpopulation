@@ -7,8 +7,7 @@
 #include <climits>
 #include <glm/gtc/matrix_transform.hpp>
 
-TextRenderer::TextRenderer(const std::string &fontPath, Shader *fontShader, FT_UInt pixelSize)
-    : shader(fontShader)
+TextRenderer::TextRenderer(const std::string &fontPath, FT_UInt pixelSize)
 {
     // constexpr int maxLineCharacters = 300; // Estimated number of characters per line
     

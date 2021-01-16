@@ -16,7 +16,6 @@
 #include "line_renderer.h"
 #include "check_error.h"
 #include "texture_2d.h"
-#include "sprite_renderer.h"
 #include "quad_renderer.h"
 #include "button.h"
 #include "historical_figure.h"
@@ -114,9 +113,7 @@ int main()
     
     // Texture2D buttonPressed{"sprites/adwitr-5th-button1", true};
 
-    Shader       textShader("shaders/text.vert", "shaders/text.frag");
-    
-    TextRenderer textRen("fonts/Cantarell-Regular.otf", &textShader, 32);
+    TextRenderer textRen("fonts/Cantarell-Regular.otf", 32);
 
     glCheckError();
 
@@ -125,17 +122,11 @@ int main()
 
     glCheckError();
 
-    Shader         spriteShader{"shaders/sprite.vert", "shaders/sprite.frag"};
-    SpriteRenderer spriteRen{spriteShader};
-    
-    glCheckError();
-    
     Button button{-1,
                   -0.25f * Game::main.window_height,
                   34 * 10,
                   10 * 10,
                   &buttonNormal,
-                  &spriteRen,
                   &textRen,
                   "Pass Month",
                   34 * 10 * 0.25f};
@@ -148,7 +139,6 @@ int main()
                           34 * 10,
                           10 * 10,
                           &buttonNormal,
-                          &spriteRen,
                           &textRen,
                           "Pass Year",
                           34 * 10 * 0.25f};

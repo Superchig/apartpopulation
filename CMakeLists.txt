@@ -25,8 +25,6 @@ set(BASE_SRCS
     "button.cpp"
     texture_2d.cpp
     texture_2d.h
-    sprite_renderer.h
-    sprite_renderer.cpp
     historical_figure.h
     historical_figure.cpp
     calendar.h
