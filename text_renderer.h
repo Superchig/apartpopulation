@@ -34,6 +34,7 @@ public:
     int                       atlasHeight;
     std::map<char, Character> characters;
     Shader *                  shader;
+    float                     quadRenderIndex;
     // glm::mat4                 view;
     // glm::mat4                 projection;
 

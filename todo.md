@@ -19,11 +19,13 @@
 - [x] Give nobles spouses
 - [x] Allow nobles to give birth and have kids, as well as to die of old age (tentatively)
 - [x] Implement batch rendering (at least for quads)
+- [x] Render sprites and text with batch renderer
 
 # Current Goal
 - Extend quad renderer to support "unlimited" textures, based off of texture
   index
-- Render sprites and text with batch renderer
+- Control when some quads render over others with quad renderer (using a
+  sorting order?)
 - Add scrollbars/render text or tables more efficiently
 
 # Future Programming Ideas

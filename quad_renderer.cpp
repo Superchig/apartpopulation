@@ -7,6 +7,7 @@
 #include "check_error.h"
 #include "game.h"
 
+// TODO: Don't specify more than one batch initially
 QuadRenderer::QuadRenderer() : batches(2), shader("shaders/quad.vert", "shaders/quad.frag")
 {
     GLuint quadIBO;
@@ -83,7 +84,7 @@ void QuadRenderer::prepareQuad(glm::vec2 position, float width, float height,
     // -------------------------------------------
     auto result = std::find(textureIDs.begin(), textureIDs.end(), textureID);
     int location;
-    if (result != textureIDs.end())
+    if (result == textureIDs.end())
     {
         location = textureIDs.size();
         textureIDs.push_back(textureID);
@@ -162,4 +163,12 @@ void QuadRenderer::flush(const Batch& batch)
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadIBO);
     glBufferSubData(GL_ARRAY_BUFFER, 0, batch.quadIndex * sizeof(AttributesQuad), &batch.quadBuffer[0]);
     glDrawElements(GL_TRIANGLES, batch.quadIndex * 6, GL_UNSIGNED_INT, nullptr);
+}
+
+void QuadRenderer::resetBuffers()
+{
+    for (Batch &batch : batches)
+    {
+        batch.quadIndex = 0;
+    }
 }

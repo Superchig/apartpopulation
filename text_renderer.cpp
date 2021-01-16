@@ -1,25 +1,17 @@
 #include "text_renderer.h"
 #include "game.h"
+#include "quad_renderer.h"
 
 #include <string_view>
 #include <iostream>
+#include <climits>
 #include <glm/gtc/matrix_transform.hpp>
 
 TextRenderer::TextRenderer(const std::string &fontPath, Shader *fontShader, FT_UInt pixelSize)
     : shader(fontShader)
 {
-    // TODO: Put this constant at the level of the text renderer?
-    constexpr int maxLineCharacters = 300; // Estimated number of characters per line
+    // constexpr int maxLineCharacters = 300; // Estimated number of characters per line
     
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4 * maxLineCharacters, NULL, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-    glEnableVertexAttribArray(0);
-
     FT_Library ft;
     if (FT_Init_FreeType(&ft))
     {
@@ -42,9 +34,12 @@ TextRenderer::TextRenderer(const std::string &fontPath, Shader *fontShader, FT_U
     int combinedWidth = 0;
     unsigned int maxHeight = 0;
     
+    constexpr int ftLoadFlags = FT_LOAD_RENDER | FT_LOAD_COLOR;
+    constexpr int imageFormat = GL_RGBA;
+    
     for (unsigned char c = 0; c < 128; c++)
     {
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+        if (FT_Load_Char(face, c, ftLoadFlags))
         {
             std::cout << "ERROR::FREETYPE: Failed to load glyph" << std::endl;
             continue;
@@ -61,7 +56,7 @@ TextRenderer::TextRenderer(const std::string &fontPath, Shader *fontShader, FT_U
     glBindTexture(GL_TEXTURE_2D, textureAtlas);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, combinedWidth, maxHeight, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, imageFormat, combinedWidth, maxHeight, 0, imageFormat, GL_UNSIGNED_BYTE, nullptr);
     
     // Set texture options
     // TODO: Experiment with GL_NEAREST vs GL_LINEAR for a more (or less)
@@ -76,14 +71,27 @@ TextRenderer::TextRenderer(const std::string &fontPath, Shader *fontShader, FT_U
     for (unsigned char c = 0; c < 128; c++)
     {
         // Load character glyph
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+        if (FT_Load_Char(face, c, ftLoadFlags))
         {
             std::cout << "ERROR::FREETYPE: Failed to load glyph" << std::endl;
             continue;
         }
+        
+        // Make an RGBA bitmap from FreeType's R bitmap
+        const int newBitmapLength = face->glyph->bitmap.width * face->glyph->bitmap.rows * 4;
+        unsigned char rgbaBitmap[newBitmapLength];
+        for (int i = 0; i < newBitmapLength; i += 4)
+        {
+            rgbaBitmap[i]     = UCHAR_MAX; // Red
+            rgbaBitmap[i + 1] = UCHAR_MAX; // Green
+            rgbaBitmap[i + 2] = UCHAR_MAX; // Blue
+            rgbaBitmap[i + 3] = face->glyph->bitmap.buffer[i / 4]; // Alpha
+        }
 
+        // glTexSubImage2D(GL_TEXTURE_2D, 0, x, 0, face->glyph->bitmap.width, face->glyph->bitmap.rows,
+        //                 imageFormat, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
         glTexSubImage2D(GL_TEXTURE_2D, 0, x, 0, face->glyph->bitmap.width, face->glyph->bitmap.rows,
-                        GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
+                        imageFormat, GL_UNSIGNED_BYTE, rgbaBitmap);
 
         // Now store character for later use
         Character character =
@@ -106,37 +114,14 @@ TextRenderer::TextRenderer(const std::string &fontPath, Shader *fontShader, FT_U
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    this->quadRenderIndex = (float)Game::main.quadRenderer->textureIDs.size();
+    Game::main.quadRenderer->textureIDs.push_back(textureAtlas);
 }
 
 float TextRenderer::renderTextPart(std::string_view text, float x, float y,
                                   float scale, glm::vec3 color)
 {
-    // Activate the corresponding render state
-    shader->use();
-    glUniform3f(glGetUniformLocation(shader->ID, "textColor"), color.x, color.y,
-                color.z);
-    glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(VAO);
-
-    glm::mat4 model = glm::mat4(1.0f);
-    shader->setMatrix("model", model);
-
-    shader->setMatrix("projection", Game::main.projection);
-
-    shader->setMatrix("view", Game::main.view);
-    
-    glBindTexture(GL_TEXTURE_2D, textureAtlas);
-    
-    struct Point
-    {
-        float x;
-        float y;
-        float s;
-        float t;
-    };
-    
-    Point allPoints[text.size()][6];
-    
     // Iterate through all the characters
     for (int i = 0; i < text.size(); i++)
     {
@@ -159,27 +144,19 @@ float TextRenderer::renderTextPart(std::string_view text, float x, float y,
         //std::cout << "rightX: " << rightX
         //          << ", topY: " << topY << std::endl;
         
-        allPoints[i][0] = {xPos,     yPos + h, leftX, 0.0f};
-        allPoints[i][1] = {xPos,     yPos,     leftX, topY};
-        allPoints[i][2] = {xPos + w, yPos,     rightX, topY};
-        allPoints[i][3] = {xPos,     yPos + h, leftX, 0.0f};
-        allPoints[i][4] = {xPos + w, yPos,     rightX, topY};
-        allPoints[i][5] = {xPos + w, yPos + h, rightX, 0.0f};
+        // TODO: Rename leftX and rightX to be more descriptive/intuitive
+        AttributesQuad glyphQuad;
+        glyphQuad.topRight    = {xPos,     yPos + h,   color.r, color.g, color.b, 1.0f,   leftX,  0.0f,  quadRenderIndex};
+        glyphQuad.bottomRight = {xPos,     yPos,       color.r, color.g, color.b, 1.0f,   leftX,  topY,  quadRenderIndex};
+        glyphQuad.bottomLeft  = {xPos + w, yPos,       color.r, color.g, color.b, 1.0f,   rightX, topY,  quadRenderIndex};
+        glyphQuad.topLeft     = {xPos + w, yPos + h,   color.r, color.g, color.b, 1.0f,   rightX, 0.0f,  quadRenderIndex};
+        Game::main.quadRenderer->prepareQuad(0, glyphQuad);
 
-        // Update content of VBO memory
-        // glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        // glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-        // Render quad
-        // glDrawArrays(GL_TRIANGLES, 0, 6);
         // Now advance cursors for next glyph (note that advance is number of
         // 1/64 pixels)
         x += (ch.Advance >> 6) *
              scale; // Bitshift by 6 to get value in pixels (2*6 = 64)
     }
-    
-    glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(allPoints), allPoints);
-    glDrawArrays(GL_TRIANGLES, 0, 6 * text.size());
     
     return x;
 }
@@ -190,7 +167,6 @@ void TextRenderer::renderText(std::string_view text, float x, float y,
     renderTextPart(text, x, y, scale, color);
 }
 
-// FIXME: Rewrite to use texture atlas
 // maxWidth is in font pixels (texels)
 void TextRenderer::renderTextMax(std::string_view text, float x, float y,
                                  float scale, glm::vec3 color, int maxWidth)

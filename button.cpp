@@ -16,8 +16,11 @@ Button::Button(float x, float y, int width, int height, Texture2D *texture,
 
 void Button::draw()
 {
-    spriteRenderer->drawSprite(*texture, glm::vec2(x, y),
-                               glm::vec2(width, height));
+    // spriteRenderer->drawSprite(*texture, glm::vec2(x, y),
+    //                            glm::vec2(width, height));
+    
+    // Works except for the fact that text renders too early
+    Game::main.quadRenderer->prepareQuad(glm::vec2(x, y), width, height, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), texture->ID);
     
     // TODO: Store this value in the text renderer during initialization
     int maxHeight = -1;

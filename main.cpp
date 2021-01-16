@@ -99,11 +99,23 @@ int main()
 
     // Load shaders and other resources
     // --------------------------------
+    
+    // Initialize Game::main.quadRenderer before any text renderers
+    QuadRenderer quadRenderer;
+    Texture2D logh{"sprites/logh.png", true};
     Texture2D container{"sprites/container.jpg", false};
     Texture2D buttonNormal{"sprites/adwitr-5th-button0.png", true, GL_NEAREST};
+    quadRenderer.textureIDs.push_back(container.ID);
+    quadRenderer.textureIDs.push_back(logh.ID);
+    quadRenderer.textureIDs.push_back(buttonNormal.ID);
+    Game::main.quadRenderer = &quadRenderer;
+    
+    std::cout << "GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: " << GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS << std::endl;
+    
     // Texture2D buttonPressed{"sprites/adwitr-5th-button1", true};
 
     Shader       textShader("shaders/text.vert", "shaders/text.frag");
+    
     TextRenderer textRen("fonts/Cantarell-Regular.otf", &textShader, 32);
 
     glCheckError();
@@ -175,51 +187,41 @@ int main()
     // Experimental quad rendering
     // ---------------------------
     
-    QuadRenderer quadRenderer;
-    Texture2D logh{"sprites/logh.png", true};
-    quadRenderer.textureIDs.push_back(container.ID);
-    quadRenderer.textureIDs.push_back(logh.ID);
-    quadRenderer.textureIDs.push_back(buttonNormal.ID);
-    Game::main.quadRenderer = &quadRenderer;
     
-    std::cout << "GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: " << GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS << std::endl;
+    // constexpr int quadBufferCapacity = 10;
+    // std::array<AttributesQuad, quadBufferCapacity> quadBuffer;
+    // int quadIndex = 0;
     
-    constexpr int quadBufferCapacity = 10;
-    std::array<AttributesQuad, quadBufferCapacity> quadBuffer;
-    int quadIndex = 0;
-    
-    quadBuffer[quadIndex].topRight    = { 100.0,  100.0,    0.0, 1.0, 0.0, 1.0,   1.0, 1.0,    0.0};
-    quadBuffer[quadIndex].bottomRight = { 100.0, -100.0,    0.0, 1.0, 0.0, 1.0,   1.0, 0.0,    0.0};
-    quadBuffer[quadIndex].bottomLeft  = {-100.0, -100.0,    0.0, 1.0, 0.0, 1.0,   0.0, 0.0,    0.0};
-    quadBuffer[quadIndex].topLeft     = {-100.0,  100.0,    0.0, 1.0, 0.0, 1.0,   0.0, 1.0,    0.0};
-    Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
-    quadIndex++;
-    
-    quadBuffer[quadIndex].topRight    = { 100.0 + 200.0f,  100.0,    0.0, 0.0, 1.0, 1.0,   1.0, 1.0,    0.0};
-    quadBuffer[quadIndex].bottomRight = { 100.0 + 200.0f, -100.0,    0.0, 0.0, 1.0, 1.0,   1.0, 0.0,    0.0};
-    quadBuffer[quadIndex].bottomLeft  = {-100.0 + 200.0f, -100.0,    0.0, 0.0, 1.0, 1.0,   0.0, 0.0,    0.0};
-    quadBuffer[quadIndex].topLeft     = {-100.0 + 200.0f,  100.0,    0.0, 0.0, 1.0, 1.0,   0.0, 1.0,    0.0};
-    Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
-    quadIndex++;
-    
-    quadBuffer[quadIndex].topRight    = { 100.0,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 1.0,    1.0};
-    quadBuffer[quadIndex].bottomRight = { 100.0, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 0.0,    1.0};
-    quadBuffer[quadIndex].bottomLeft  = {-100.0, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 0.0,    1.0};
-    quadBuffer[quadIndex].topLeft     = {-100.0,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 1.0,    1.0};
-    Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
-    quadIndex++;
-    
-    quadBuffer[quadIndex].topRight    = { 100.0 + 200.0f,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 1.0,    2.0};
-    quadBuffer[quadIndex].bottomRight = { 100.0 + 200.0f, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 0.0,    2.0};
-    quadBuffer[quadIndex].bottomLeft  = {-100.0 + 200.0f, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 0.0,    2.0};
-    quadBuffer[quadIndex].topLeft     = {-100.0 + 200.0f,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 1.0,    2.0};
-    Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
-    quadIndex++;
+    // quadBuffer[quadIndex].topRight    = { 100.0,  100.0,    0.0, 1.0, 0.0, 1.0,   1.0, 1.0,    0.0};
+    // quadBuffer[quadIndex].bottomRight = { 100.0, -100.0,    0.0, 1.0, 0.0, 1.0,   1.0, 0.0,    0.0};
+    // quadBuffer[quadIndex].bottomLeft  = {-100.0, -100.0,    0.0, 1.0, 0.0, 1.0,   0.0, 0.0,    0.0};
+    // quadBuffer[quadIndex].topLeft     = {-100.0,  100.0,    0.0, 1.0, 0.0, 1.0,   0.0, 1.0,    0.0};
+    // Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
+    // quadIndex++;
+    // 
+    // quadBuffer[quadIndex].topRight    = { 100.0 + 200.0f,  100.0,    0.0, 0.0, 1.0, 1.0,   1.0, 1.0,    0.0};
+    // quadBuffer[quadIndex].bottomRight = { 100.0 + 200.0f, -100.0,    0.0, 0.0, 1.0, 1.0,   1.0, 0.0,    0.0};
+    // quadBuffer[quadIndex].bottomLeft  = {-100.0 + 200.0f, -100.0,    0.0, 0.0, 1.0, 1.0,   0.0, 0.0,    0.0};
+    // quadBuffer[quadIndex].topLeft     = {-100.0 + 200.0f,  100.0,    0.0, 0.0, 1.0, 1.0,   0.0, 1.0,    0.0};
+    // Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
+    // quadIndex++;
+    // 
+    // quadBuffer[quadIndex].topRight    = { 100.0,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 1.0,    1.0};
+    // quadBuffer[quadIndex].bottomRight = { 100.0, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 0.0,    1.0};
+    // quadBuffer[quadIndex].bottomLeft  = {-100.0, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 0.0,    1.0};
+    // quadBuffer[quadIndex].topLeft     = {-100.0,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 1.0,    1.0};
+    // Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
+    // quadIndex++;
+    // 
+    // quadBuffer[quadIndex].topRight    = { 100.0 + 200.0f,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 1.0,    2.0};
+    // quadBuffer[quadIndex].bottomRight = { 100.0 + 200.0f, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 0.0,    2.0};
+    // quadBuffer[quadIndex].bottomLeft  = {-100.0 + 200.0f, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 0.0,    2.0};
+    // quadBuffer[quadIndex].topLeft     = {-100.0 + 200.0f,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 1.0,    2.0};
+    // Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
+    // quadIndex++;
 
-    Game::main.quadRenderer->prepareQuad(glm::vec2(-500.0f, 0.0f), 100.0f, 100.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), logh.ID);
-    
     glCheckError();
-
+    
     while (!glfwWindowShouldClose(window))
     {
         if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS ||
@@ -356,8 +358,8 @@ int main()
         textRen.renderText(marriageEligible, -640.0f, Game::main.window_height / 2.0f - 32.0f * 5.0f,
                            1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         
-        spriteRen.drawSprite(container, glm::vec2(Game::main.playerX, Game::main.playerY),
-                             glm::vec2(200.0f, 200.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+        Game::main.quadRenderer->prepareQuad(glm::vec2(Game::main.playerX, Game::main.playerY),
+                                             200.0f, 200.0f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), container.ID);
         
         spreadTable.draw();
         
@@ -366,7 +368,10 @@ int main()
             b->draw();
         }
         
+        Game::main.quadRenderer->prepareQuad(glm::vec2(-500.0f, 0.0f), 200.0f, 200.0f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), logh.ID);
+        
         Game::main.quadRenderer->sendToGL();
+        Game::main.quadRenderer->resetBuffers();
         
         glfwSwapBuffers(window);
         glfwPollEvents();

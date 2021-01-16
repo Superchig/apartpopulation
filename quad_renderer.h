@@ -64,6 +64,7 @@ public:
     // NOTE: Directly sending a texture index rather than ID can result in the wrong texture being drawn (due to being in the wrong batch)
     void prepareQuad(int batchIndex, AttributesQuad &input);
     void sendToGL();
+    void resetBuffers();
 
 private:
     std::vector<Batch> batches;
