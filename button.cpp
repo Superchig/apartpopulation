@@ -11,7 +11,7 @@ Button::Button(float x, float y, int width, int height, Texture2D *texture,
 {
 }
 
-void Button::draw()
+void Button::sendToRenderer()
 {
     // spriteRenderer->drawSprite(*texture, glm::vec2(x, y),
     //                            glm::vec2(width, height));
@@ -19,22 +19,11 @@ void Button::draw()
     // Works except for the fact that text renders too early
     Game::main.quadRenderer->prepareQuad(glm::vec2(x, y), width, height, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), texture->ID);
     
-    // TODO: Store this value in the text renderer during initialization
-    int maxHeight = -1;
-    for (auto const &[ch, info] : textRen->characters)
-    {
-        int height = info.Size.y;
-        if (height > maxHeight)
-        {
-            maxHeight = height;
-        }
-    }
-    
     // TODO: Dynamically calculate the left increase, rather than manually assigning vertical padding
     const float left = x - (width / 2.0f) + vertPadding;
     if (!this->text.empty())
     {
-        textRen->renderText(text, left, y - maxHeight / 2.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+        textRen->renderText(text, left, y - textRen->atlasHeight / 2.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
     }
 }
 

@@ -8,8 +8,7 @@
 #include "check_error.h"
 #include "game.h"
 
-// TODO: Don't specify more than one batch initially
-QuadRenderer::QuadRenderer() : batches(2), shader("shaders/quad.vert", "shaders/quad.frag")
+QuadRenderer::QuadRenderer() : batches(1), shader("shaders/quad.vert", "shaders/quad.frag")
 {
     GLuint quadIBO;
     glCheckError();

@@ -28,7 +28,7 @@ class Button
            TextRenderer *textRen, std::string text = std::string(),
            float vertPadding = 0.0f);
 
-    void draw();
+    void sendToRenderer();
     bool hasInBounds(float x, float y);
 };
 

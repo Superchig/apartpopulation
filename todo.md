@@ -22,9 +22,10 @@
 - [x] Extend quad renderer to support "unlimited" textures, based off of texture
   index (tentatively)
 - [x] Render all text of the same font and size in one draw call
+- [x] Render lines in table with tiny quads
 
 # Current Goal
-- Render lines in table with tiny quads
+- Mark off a bunch of old TODOs
 - "Cull" quads that aren't in view, so that OpenGL isn't told to render them
 - Add scrollbars/render text or tables more efficiently
 

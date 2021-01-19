@@ -55,7 +55,7 @@ int main()
 #endif
 
     GLFWwindow *window =
-        glfwCreateWindow(Game::main.window_width, Game::main.window_height, "Platformer", NULL, NULL);
+        glfwCreateWindow(Game::main.window_width, Game::main.window_height, "Apartpopulation", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -168,49 +168,6 @@ int main()
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
-    // Experimental quad rendering
-    // ---------------------------
-    
-    
-    // constexpr int quadBufferCapacity = 10;
-    // std::array<AttributesQuad, quadBufferCapacity> quadBuffer;
-    // int quadIndex = 0;
-    
-    // quadBuffer[quadIndex].topRight    = { 100.0,  100.0,    0.0, 1.0, 0.0, 1.0,   1.0, 1.0,    0.0};
-    // quadBuffer[quadIndex].bottomRight = { 100.0, -100.0,    0.0, 1.0, 0.0, 1.0,   1.0, 0.0,    0.0};
-    // quadBuffer[quadIndex].bottomLeft  = {-100.0, -100.0,    0.0, 1.0, 0.0, 1.0,   0.0, 0.0,    0.0};
-    // quadBuffer[quadIndex].topLeft     = {-100.0,  100.0,    0.0, 1.0, 0.0, 1.0,   0.0, 1.0,    0.0};
-    // Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
-    // quadIndex++;
-    // 
-    // quadBuffer[quadIndex].topRight    = { 100.0 + 200.0f,  100.0,    0.0, 0.0, 1.0, 1.0,   1.0, 1.0,    0.0};
-    // quadBuffer[quadIndex].bottomRight = { 100.0 + 200.0f, -100.0,    0.0, 0.0, 1.0, 1.0,   1.0, 0.0,    0.0};
-    // quadBuffer[quadIndex].bottomLeft  = {-100.0 + 200.0f, -100.0,    0.0, 0.0, 1.0, 1.0,   0.0, 0.0,    0.0};
-    // quadBuffer[quadIndex].topLeft     = {-100.0 + 200.0f,  100.0,    0.0, 0.0, 1.0, 1.0,   0.0, 1.0,    0.0};
-    // Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
-    // quadIndex++;
-    // 
-    // quadBuffer[quadIndex].topRight    = { 100.0,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 1.0,    1.0};
-    // quadBuffer[quadIndex].bottomRight = { 100.0, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 0.0,    1.0};
-    // quadBuffer[quadIndex].bottomLeft  = {-100.0, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 0.0,    1.0};
-    // quadBuffer[quadIndex].topLeft     = {-100.0,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 1.0,    1.0};
-    // Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
-    // quadIndex++;
-    // 
-    // quadBuffer[quadIndex].topRight    = { 100.0 + 200.0f,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 1.0,    2.0};
-    // quadBuffer[quadIndex].bottomRight = { 100.0 + 200.0f, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   1.0, 0.0,    2.0};
-    // quadBuffer[quadIndex].bottomLeft  = {-100.0 + 200.0f, -100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 0.0,    2.0};
-    // quadBuffer[quadIndex].topLeft     = {-100.0 + 200.0f,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 1.0,    2.0};
-    // Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
-    // quadIndex++;
-    
-    // TODO: Remove when no longer necessary
-    AttributesQuad quad;
-    quad.topRight    = {-100.0f,  1.0f,   1.0f, 1.0f, 1.0f, 1.0f,   1.0, 1.0f,    1.0f};
-    quad.bottomRight = {100.0f,  -1.0f,   1.0f, 1.0f, 1.0f, 1.0f,   1.0, 0.0f,    1.0f};
-    quad.bottomLeft  = {-100.0f, -1.0f,   1.0f, 1.0f, 1.0f, 1.0f,   0.0, 0.0f,    1.0f};
-    quad.topLeft     = {100.0f,   1.0f,   1.0f, 1.0f, 1.0f, 1.0f,   0.0, 1.0f,    1.0f};
-
     glCheckError();
     
     while (!glfwWindowShouldClose(window))
@@ -352,17 +309,14 @@ int main()
         Game::main.quadRenderer->prepareQuad(glm::vec2(Game::main.playerX, Game::main.playerY),
                                              200.0f, 200.0f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), container.ID);
         
-        spreadTable.draw();
+        spreadTable.sendToRenderer();
         
         for (Button *b : Game::main.buttons)
         {
-            b->draw();
+            b->sendToRenderer();
         }
         
         Game::main.quadRenderer->prepareQuad(glm::vec2(-500.0f, 0.0f), 200.0f, 200.0f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), logh.ID);
-        Game::main.quadRenderer->prepareRightLine(0.0f, 0.0f, 640.0f);
-        
-        // Game::main.quadRenderer->prepareQuad(0, quad);
         
         Game::main.quadRenderer->sendToGL();
         Game::main.quadRenderer->resetBuffers();

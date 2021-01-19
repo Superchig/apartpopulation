@@ -58,8 +58,8 @@ TextRenderer::TextRenderer(const std::string &fontPath, FT_UInt pixelSize)
     glTexImage2D(GL_TEXTURE_2D, 0, imageFormat, combinedWidth, maxHeight, 0, imageFormat, GL_UNSIGNED_BYTE, nullptr);
     
     // Set texture options
-    // TODO: Experiment with GL_NEAREST vs GL_LINEAR for a more (or less)
-    // 8-bit esque look when small
+    // TODO: Fix "texture-splattering" bug with GL_LINEAR that seems to exist
+    // due to texture atlas formation.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -127,16 +127,16 @@ float TextRenderer::renderTextPart(std::string_view text, float x, float y,
         const char c = text[i];
         Character ch = characters[c];
 
-        float xPos = x + ch.Bearing.x * scale;
-        float yPos = y - (ch.Size.y - ch.Bearing.y) * scale;
+        float xPos = x + ch.bearing.x * scale;
+        float yPos = y - (ch.size.y - ch.bearing.y) * scale;
 
-        float w = ch.Size.x * scale;
-        float h = ch.Size.y * scale;
+        float w = ch.size.x * scale;
+        float h = ch.size.y * scale;
         
-        float leftX = ch.TextureX / atlasWidth;
-        float rightX = (ch.TextureX + (float) ch.Size.x) / atlasWidth;
+        float leftX = ch.textureX / atlasWidth;
+        float rightX = (ch.textureX + (float) ch.size.x) / atlasWidth;
         // float rightX = 1.0f / (128.0f);
-        float topY = ch.Size.y / (float) atlasHeight;
+        float topY = ch.size.y / (float) atlasHeight;
         
         // std::cout << "ch.TextureX: " << ch.TextureX
         //           << ", atlasWidth: " << atlasWidth << std::endl;
@@ -153,7 +153,7 @@ float TextRenderer::renderTextPart(std::string_view text, float x, float y,
 
         // Now advance cursors for next glyph (note that advance is number of
         // 1/64 pixels)
-        x += (ch.Advance >> 6) *
+        x += (ch.advance >> 6) *
              scale; // Bitshift by 6 to get value in pixels (2*6 = 64)
     }
     
@@ -170,7 +170,7 @@ void TextRenderer::renderText(std::string_view text, float x, float y,
 void TextRenderer::renderTextMax(std::string_view text, float x, float y,
                                  float scale, glm::vec3 color, int maxWidth)
 {
-    const int period3Advance = 3 * (this->characters['.'].Advance / 64);
+    const int period3Advance = 3 * (this->characters['.'].advance / 64);
     
     // Calculate the maximum width of the string until maxWidth is reached
     int texelWidth = period3Advance;
@@ -179,7 +179,7 @@ void TextRenderer::renderTextMax(std::string_view text, float x, float y,
     {
         char c = text[i];
         Character ch = this->characters[c];
-        const int advance64 = ch.Advance / 64; 
+        const int advance64 = ch.advance / 64; 
         
         if (texelWidth + advance64 > maxWidth)
         {

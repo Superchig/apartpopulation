@@ -10,13 +10,12 @@
 #include <string_view>
 #include FT_FREETYPE_H
 
-// TODO: Lowercase fields in its own commit
 struct Character
 {
-    glm::vec2 Size; // Width, then height
-    glm::vec2 Bearing;
-    FT_Pos    Advance;
-    float     TextureX; // x offset of glyph in texture coordinates
+    glm::vec2 size; // Width, then height
+    glm::vec2 bearing;
+    FT_Pos    advance;
+    float     textureX; // x offset of glyph in texture coordinates
 };
 
 class TextRenderer

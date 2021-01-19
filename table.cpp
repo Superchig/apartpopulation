@@ -26,7 +26,7 @@ void Table::setItem(int row, int col, std::string value)
 
 void Table::setColWidth(int col, int width) { col_widths[col] = width; }
 
-void Table::draw()
+void Table::sendToRenderer()
 {
     const float SCALE_FACTOR = 1.0f;
     // const float SCALE_FACTOR = (1.0f / Game::main.window_height);
@@ -35,15 +35,7 @@ void Table::draw()
     // const int   COL_WIDTH    = 400; // In font pixels
     const int   COL_PADDING  = 0;  // In font pixels
 
-    int maxHeight = -1;
-    for (auto const &[ch, info] : textRen->characters)
-    {
-        int height = info.Size.y;
-        if (height > maxHeight)
-        {
-            maxHeight = height;
-        }
-    }
+    const int maxHeight = textRen->atlasHeight;
 
     float currentY = yPos;
 
