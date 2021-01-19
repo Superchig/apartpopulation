@@ -69,14 +69,16 @@ void Table::draw()
 
     const float highestY =
         currentY + scaledDownLengthBase + (scaledDownPadding / 2.0f);
-    lineRen->drawLine(xPos, highestY, rightMostX, highestY); // Top border
 
     const float lowestY = currentY - ((data.size() - 1) * scaledDownLength) -
                           (scaledDownPadding / 2.0f);
-    // Left-most border
-    lineRen->drawLine(xPos, highestY, xPos, lowestY);
+    
+    const float vertBorderLen = highestY - lowestY;
+    
+    // Top border
+    Game::main.quadRenderer->prepareRightLine(xPos, highestY, totalWidth);
     // Right-most border
-    lineRen->drawLine(rightMostX, highestY, rightMostX, lowestY);
+    Game::main.quadRenderer->prepareDownLine(rightMostX, highestY, vertBorderLen);
 
     // Draw left borders of columns
     float borderX = xPos;
@@ -84,7 +86,7 @@ void Table::draw()
     {
         const float scaledWidth = col_widths[j] * SCALE_FACTOR + scaledColPadding;
 
-        lineRen->drawLine(borderX, highestY, borderX, lowestY);
+        Game::main.quadRenderer->prepareDownLine(borderX, highestY, vertBorderLen);
 
         borderX += scaledWidth;
     }
@@ -98,7 +100,7 @@ void Table::draw()
 
         const float bottomY = currentY - (scaledDownPadding / 2.0f);
         // Bottom borders for each row
-        lineRen->drawLine(xPos, bottomY, xPos + scaledTotalWidth, bottomY);
+        Game::main.quadRenderer->prepareRightLine(xPos, bottomY, scaledTotalWidth);
 
         float currentX = xPos;
 

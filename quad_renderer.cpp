@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <cstring>
+#include <cmath>
 #include <algorithm>
 #include "check_error.h"
 #include "game.h"
@@ -75,6 +76,18 @@ QuadRenderer::QuadRenderer() : batches(2), shader("shaders/quad.vert", "shaders/
         samplers[i] = i;
     }
     glUniform1iv(location, MAX_TEXTURES_PER_BATCH, samplers);
+    
+    // Create white texture as the first texture
+    // -----------------------------------------
+    unsigned char data[] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
+    
+    GLuint whiteTexture;
+    glGenTextures(1, &whiteTexture);
+    glBindTexture(GL_TEXTURE_2D, whiteTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    
+    this->textureIDs.push_back(whiteTexture);
+    whiteTextureIndex = 0.0f;
 }
 
 void QuadRenderer::prepareQuad(glm::vec2 position, float width, float height,
@@ -156,7 +169,30 @@ void QuadRenderer::sendToGL()
     flush(batches[currentBatch]);
 }
 
-void QuadRenderer::flush(const Batch& batch)
+void QuadRenderer::prepareDownLine(float x, float y, float height)
+{
+    const float halfWidth = 0.5f;
+    AttributesQuad quad;
+    quad.topRight    = {x + halfWidth, y,            1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f,    whiteTextureIndex};
+    quad.bottomRight = {x + halfWidth, y - height,   1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f,    whiteTextureIndex};
+    quad.bottomLeft  = {x - halfWidth, y - height,   1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 0.0f,    whiteTextureIndex};
+    quad.topLeft     = {x - halfWidth, y,            1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 1.0f,    whiteTextureIndex};
+    prepareQuad(0, quad);
+}
+
+void QuadRenderer::prepareRightLine(float x, float y, float width)
+{
+    const float halfHeight = 0.5f;
+    AttributesQuad quad;
+    quad.topRight    = {x + width, y + halfHeight, 1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f,    whiteTextureIndex};
+    quad.bottomRight = {x + width, y - halfHeight, 1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f,    whiteTextureIndex};
+    quad.bottomLeft  = {x        , y - halfHeight, 1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 0.0f,    whiteTextureIndex};
+    quad.topLeft     = {x        , y + halfHeight, 1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 1.0f,    whiteTextureIndex};
+    prepareQuad(0, quad);
+}
+
+
+void QuadRenderer::flush(const Batch &batch)
 {
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // Must bind VBO before glBufferSubData

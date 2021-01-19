@@ -209,6 +209,13 @@ int main()
     // quadBuffer[quadIndex].topLeft     = {-100.0 + 200.0f,  100.0 - 200.0f,    1.0, 1.0, 1.0, 1.0,   0.0, 1.0,    2.0};
     // Game::main.quadRenderer->prepareQuad(0, quadBuffer[quadIndex]);
     // quadIndex++;
+    
+    // TODO: Remove when no longer necessary
+    AttributesQuad quad;
+    quad.topRight    = {-100.0f,  1.0f,   1.0f, 1.0f, 1.0f, 1.0f,   1.0, 1.0f,    1.0f};
+    quad.bottomRight = {100.0f,  -1.0f,   1.0f, 1.0f, 1.0f, 1.0f,   1.0, 0.0f,    1.0f};
+    quad.bottomLeft  = {-100.0f, -1.0f,   1.0f, 1.0f, 1.0f, 1.0f,   0.0, 0.0f,    1.0f};
+    quad.topLeft     = {100.0f,   1.0f,   1.0f, 1.0f, 1.0f, 1.0f,   0.0, 1.0f,    1.0f};
 
     glCheckError();
     
@@ -359,6 +366,9 @@ int main()
         }
         
         Game::main.quadRenderer->prepareQuad(glm::vec2(-500.0f, 0.0f), 200.0f, 200.0f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), logh.ID);
+        Game::main.quadRenderer->prepareRightLine(0.0f, 0.0f, 640.0f);
+        
+        // Game::main.quadRenderer->prepareQuad(0, quad);
         
         Game::main.quadRenderer->sendToGL();
         Game::main.quadRenderer->resetBuffers();

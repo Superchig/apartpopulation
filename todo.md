@@ -1,6 +1,4 @@
 # TODO
-- Dynamically render characters in a font into one large texture for the size,
-  rather than using individual faces
 - Use a class specifically for rectangles of text
   - Centered or aligned to the left
   - Maintains a font pixel size and a scale
@@ -9,7 +7,6 @@
 - Display months by name
 - Rewrite tables to be rendered in world space
 - Render a console in OpenGL with output
-- Render all text of the same font and size in one draw call
 
 ## Finished todos
 - [x] Show passing of a month
@@ -18,14 +15,17 @@
 - [x] Allocate memory for nobles on the heap
 - [x] Give nobles spouses
 - [x] Allow nobles to give birth and have kids, as well as to die of old age (tentatively)
+- [x] Dynamically render font glyphs into a texture atlas and use that for
+  rendering text
 - [x] Implement batch rendering (at least for quads)
 - [x] Render sprites and text with batch renderer
+- [x] Extend quad renderer to support "unlimited" textures, based off of texture
+  index (tentatively)
+- [x] Render all text of the same font and size in one draw call
 
 # Current Goal
-- Extend quad renderer to support "unlimited" textures, based off of texture
-  index
-- Control when some quads render over others with quad renderer (using a
-  sorting order?)
+- Render lines in table with tiny quads
+- "Cull" quads that aren't in view, so that OpenGL isn't told to render them
 - Add scrollbars/render text or tables more efficiently
 
 # Future Programming Ideas
@@ -40,6 +40,7 @@
 - Use [bitmasks](https://stackoverflow.com/questions/1406554/why-use-flagsbitmasks-rather-than-a-series-of-booleans) if you want
 - How would we store historical figures to be more cache-friendly? With SOA or
   look-up indices?
+- For audio, consider using [SoLoud](https://sol.gfxile.net/soloud/)
 
 # Future Simulation Ideas
 - People celebrate their birthdays as social events

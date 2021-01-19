@@ -54,6 +54,7 @@ public:
     static constexpr int MAX_TEXTURES_PER_BATCH = 48;
     
     std::vector<GLuint> textureIDs;
+    float whiteTextureIndex;
 
     GLuint VAO;
     GLuint VBO;
@@ -63,6 +64,8 @@ public:
     void prepareQuad(glm::vec2 position, float width, float height, glm::vec4 rgb, int textureID); // Specify texture ID rather than index?
     // NOTE: Directly sending a texture index rather than ID can result in the wrong texture being drawn (due to being in the wrong batch)
     void prepareQuad(int batchIndex, AttributesQuad &input);
+    void prepareDownLine(float x, float y, float height);
+    void prepareRightLine(float x, float y, float width);
     void sendToGL();
     void resetBuffers();
 
