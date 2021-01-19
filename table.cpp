@@ -5,10 +5,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-Table::Table(float xPos, float yPos, int rows, TextRenderer *textRen,
-             LineRenderer *lineRen)
-    : xPos(xPos), yPos(yPos), rows(rows), textRen(textRen),
-      lineRen(lineRen), data(rows)
+Table::Table(float xPos, float yPos, int rows, TextRenderer *textRen)
+    : xPos(xPos), yPos(yPos), rows(rows), textRen(textRen), data(rows)
 {
     col_widths.fill(-1);
 }

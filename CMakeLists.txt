@@ -17,8 +17,6 @@ set(BASE_SRCS
     "text_renderer.cpp"
     game.h
     game.cpp
-    line_renderer.h
-    line_renderer.cpp
     "check_error.h"
     "check_error.cpp"
     "button.h"

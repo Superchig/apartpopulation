@@ -13,7 +13,6 @@
 #include "text_renderer.h"
 #include "table.h"
 #include "game.h"
-#include "line_renderer.h"
 #include "check_error.h"
 #include "texture_2d.h"
 #include "quad_renderer.h"
@@ -117,11 +116,6 @@ int main()
 
     glCheckError();
 
-    Shader       shader2d("shaders/2d_shader.vert", "shaders/2d_shader.frag");
-    LineRenderer lineRen(&shader2d);
-
-    glCheckError();
-
     Button button{-1,
                   -0.25f * Game::main.window_height,
                   34 * 10,
@@ -157,7 +151,7 @@ int main()
     // Initialize and set up table
     // ---------------------------
     Table spreadTable(-200.0f, 300.0f, Game::main.livingFigures.size() + 1,
-                                   &textRen, &lineRen);
+                      &textRen);
     Game::main.spreadTable = &spreadTable;
     spreadTable.setColWidth(0, 300);
     spreadTable.setColWidth(1, 100);
