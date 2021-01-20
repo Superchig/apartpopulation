@@ -75,14 +75,24 @@ void Table::sendToRenderer()
     for (int j = 0; j < col_widths.size(); j++)
     {
         const float scaledWidth = col_widths[j] * SCALE_FACTOR + scaledColPadding;
-
+    
         Game::main.quadRenderer->prepareDownLine(borderX, highestY, vertBorderLen);
-
+    
         borderX += scaledWidth;
     }
 
     for (int i = 0; i < data.size(); i++)
     {
+        if (currentY > Game::main.topY)
+        {
+            currentY -= scaledDownLength;
+            continue;
+        }
+        else if (currentY + scaledDownLength < Game::main.bottomY)
+        {
+            break;
+        }
+        
         glm::vec3 color =
             i == 0 ? glm::vec3(1.0f, 0.5f, 0.5f) : glm::vec3(1.0f, 1.0f, 1.0f);
 
@@ -91,6 +101,9 @@ void Table::sendToRenderer()
         const float bottomY = currentY - (scaledDownPadding / 2.0f);
         // Bottom borders for each row
         Game::main.quadRenderer->prepareRightLine(xPos, bottomY, scaledTotalWidth);
+        
+        // Left border for each row
+        // Game::main.quadRenderer->prepareDownLine(xPos, currentY, -scaledDownLength);
 
         float currentX = xPos;
 
@@ -100,16 +113,17 @@ void Table::sendToRenderer()
 
             const int   specificWidth = col_widths[j];
             const float scaledWidth   = specificWidth * SCALE_FACTOR;
-
+            
             if (item.size() > 0)
             {
                 textRen->renderTextMax(item, currentX, currentY, SCALE_FACTOR,
                                        color, specificWidth);
             }
 
+            // Game::main.quadRenderer->prepareDownLine(currentX, currentY, -scaledDownLength);
             currentX += scaledWidth + scaledColPadding;
         }
-
+        
         currentY -= scaledDownLength;
     }
 }

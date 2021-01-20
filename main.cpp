@@ -55,7 +55,7 @@ int main()
 #endif
 
     GLFWwindow *window =
-        glfwCreateWindow(Game::main.window_width, Game::main.window_height, "Apartpopulation", NULL, NULL);
+        glfwCreateWindow(Game::main.windowWidth, Game::main.windowHeight, "Apartpopulation", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -117,14 +117,14 @@ int main()
     glCheckError();
 
     Button button{-1,
-                  -0.25f * Game::main.window_height,
+                  -0.25f * Game::main.windowHeight,
                   34 * 10,
                   10 * 10,
                   &buttonNormal,
                   &textRen,
                   "Pass Month",
                   34 * 10 * 0.25f};
-    button.x = (button.width - Game::main.window_width) / 2.0f;
+    button.x = (button.width - Game::main.windowWidth) / 2.0f;
     button.callback = advanceMonthCallback;
     Game::main.buttons.push_back(&button);
     
@@ -136,14 +136,14 @@ int main()
                           &textRen,
                           "Pass Year",
                           34 * 10 * 0.25f};
-    passYearButton.x = (passYearButton.width - Game::main.window_width) / 2.0f;
+    passYearButton.x = (passYearButton.width - Game::main.windowWidth) / 2.0f;
     passYearButton.y = button.y - button.height;
     passYearButton.callback = advanceYearCallback;
     Game::main.buttons.push_back(&passYearButton);
     
     // Set up initial noble population
     // -------------------------------
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 1000; i++)
     {
         Game::main.livingFigures.push_back(new HistoricalFigure(18));
     }
@@ -172,6 +172,8 @@ int main()
     
     while (!glfwWindowShouldClose(window))
     {
+        // Handle user input
+        // -----------------
         if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS ||
             glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
@@ -199,6 +201,14 @@ int main()
             Game::main.zoomFactor = 1.0f;
             Game::main.eyeX = 0.0f;
             Game::main.eyeY = 0.0f;
+            
+            Game::main.updateOrtho();
+        }
+        else if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        {
+            Game::main.zoomFactor = 1.0f;
+            Game::main.eyeX = 0.0f;
+            Game::main.eyeY = -50000.0f;
             
             Game::main.updateOrtho();
         }
@@ -243,6 +253,13 @@ int main()
         glm::vec3 center = eye + glm::vec3(0.0f, 0.0f, -1.0f);
         glm::vec3 up     = glm::vec3(0.0f, 1.0f, 0.0f);
         Game::main.view  = glm::lookAt(eye, center, up);
+        
+        const float halfWindowHeight = Game::main.windowHeight * Game::main.zoomFactor * 0.5f;
+        const float halfWindowWidth = Game::main.windowWidth * Game::main.zoomFactor * 0.5f;
+        Game::main.topY = Game::main.eyeY + halfWindowHeight;
+        Game::main.bottomY = Game::main.eyeY - halfWindowHeight;
+        Game::main.rightX = Game::main.eyeX + halfWindowWidth;
+        Game::main.leftX = Game::main.eyeX - halfWindowWidth;
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -251,33 +268,13 @@ int main()
         double yPos;
         glfwGetCursorPos(window, &xPos, &yPos);
         std::stringstream sstream;
-        // sstream << "Mouse cursor: " << xPos << ", " << yPos;
-        // textRen.renderText(sstream.str(), -640.0f, -32.0f, 1.0f,
-        //                    glm::vec3(1.0f, 1.0f, 1.0f));
         
-        // Coordinates in clip space for mouse cursor.
-        // Note: With the view and perspective
-        // projection matrix I have set up, the w value seems to roughly equal the
-        // distance between the eye and the xy-plane (eye's z-value). The w value
-        // is a little higher than the z value for homogeneous clip space coordinates,
-        // but I don't understand the math well enough to know why (the absolute
-        // difference between the values changes as they get larger, but I don't know
-        // why that happens either).
-        const double xNDC = (xPos / (Game::main.window_width / 2.0f)) - 1.0f;
-        const double yNDC = 1.0f - (yPos / (Game::main.window_height / 2.0f));
+        const double xNDC = (xPos / (Game::main.windowWidth / 2.0f)) - 1.0f;
+        const double yNDC = 1.0f - (yPos / (Game::main.windowHeight / 2.0f));
         
-        const float rectX = -500.0f;
-        const float rectY = 200.0f;
-        const float rectWidth = 200.0f;
-        const float rectHeight = 200.0f;
-        // drawRectangle(shaderProgram, rectX, rectY, rectWidth, rectHeight, 0.0f);
-        glm::vec3 topRightWorld = glm::vec3(rectX + (rectWidth / 2.0f), rectY + (rectHeight / 2.0f), 0.0f);
-        // std::cout << "topRightWorld: " << topRightWorld.x << ", " << topRightWorld.y << ", " << topRightWorld.z << std::endl;
-        sstream.str("");
-        sstream << "topRightWorld: " << topRightWorld.x << ", " << topRightWorld.y << ", " << topRightWorld.z;
-        textRen.renderText(sstream.str(), -640.0f, 0.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-        
-        // This math doesn't work with perspective projection matrices, but it does
+        // Calculate the world position of the mouse
+        // -----------------------------------------
+        // NOTE: This math doesn't work with perspective projection matrices, but it does
         // work with an orthographic projection matrix
         glm::mat4 VP = Game::main.projection * Game::main.view;
         glm::mat4 VPinv = glm::inverse(VP);
@@ -286,7 +283,7 @@ int main()
         // std::cout << "worldMouse: " << worldMouse.x << ", " << worldMouse.y << ", " << worldMouse.z << ", " << worldMouse.w << std::endl;
         sstream.str("");
         sstream << "worldMouse: " << worldMouse.x << ", " << worldMouse.y << ", " << worldMouse.z << ", " << worldMouse.w;
-        textRen.renderText(sstream.str(), -640.0f, -32.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+        textRen.renderText(sstream.str(), -640.0f, 0.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         Game::main.mouseX = worldMouse.x;
         Game::main.mouseY = worldMouse.y;
         
@@ -295,15 +292,15 @@ int main()
         // This month has just happened
         const std::string date = "Year: " + std::to_string(Game::main.date.year)
             + ", month: " + std::to_string(Game::main.date.month);
-        textRen.renderText(date, -640.0f, Game::main.window_height / 2.0f - 32.0f * 3.0f,
+        textRen.renderText(date, -640.0f, Game::main.windowHeight / 2.0f - 32.0f * 3.0f,
                            1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         
         const std::string popCount = "Living nobles: " + std::to_string(Game::main.livingFigures.size());
-        textRen.renderText(popCount, -640.0f, Game::main.window_height / 2.0f - 32.0f * 4.0f,
+        textRen.renderText(popCount, -640.0f, Game::main.windowHeight / 2.0f - 32.0f * 4.0f,
                            1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         
         const std::string marriageEligible = "Marriage eligible: " + std::to_string(Game::main.marriageEligible);
-        textRen.renderText(marriageEligible, -640.0f, Game::main.window_height / 2.0f - 32.0f * 5.0f,
+        textRen.renderText(marriageEligible, -640.0f, Game::main.windowHeight / 2.0f - 32.0f * 5.0f,
                            1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         
         Game::main.quadRenderer->prepareQuad(glm::vec2(Game::main.playerX, Game::main.playerY),

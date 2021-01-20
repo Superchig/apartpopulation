@@ -29,9 +29,14 @@ class Game
 
     std::vector<Button *> buttons;
 
-    int window_width  = 1280;
-    int window_height = 720;
-
+    int windowWidth  = 1280;
+    int windowHeight = 720;
+    
+    float topY;
+    float bottomY;
+    float leftX;
+    float rightX;
+    
     glm::mat4 view;
     glm::mat4 projection;
     
