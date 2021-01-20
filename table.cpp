@@ -28,102 +28,52 @@ void Table::setColWidth(int col, int width) { col_widths[col] = width; }
 
 void Table::sendToRenderer()
 {
-    const float SCALE_FACTOR = 1.0f;
-    // const float SCALE_FACTOR = (1.0f / Game::main.window_height);
-    // In height (in pixels) of font's bitmap
-    const float DOWN_PADDING = 25.0f;
-    // const int   COL_WIDTH    = 400; // In font pixels
-    const int   COL_PADDING  = 0;  // In font pixels
-
-    const int maxHeight = textRen->atlasHeight;
-
-    float currentY = yPos;
-
-    // The minimum distance to move down to make a new line
-    const float scaledDownLengthBase = (float)maxHeight * SCALE_FACTOR;
-    const float scaledDownPadding    = DOWN_PADDING * SCALE_FACTOR;
-    const float scaledDownLength     = scaledDownLengthBase + scaledDownPadding;
-
-    // const float scaledColWidth    = (float)COL_WIDTH * SCALE_FACTOR;
-    const float scaledColPadding = COL_PADDING * SCALE_FACTOR;
-
+    const float upperColHeight = textRen->atlasHeight;
+    const float lowerColHeight = textRen->atlasHeight * 0.25f;
+    const float colHeight = upperColHeight + lowerColHeight;
+    
     // Calculate total column width
     float totalWidth = 0;
     for (int width : col_widths)
     {
-        totalWidth += width + scaledColPadding;
+        totalWidth += width;
     }
-    const float scaledTotalWidth = totalWidth * SCALE_FACTOR;
-
-    const float rightMostX = xPos + totalWidth;
-
-    const float highestY =
-        currentY + scaledDownLengthBase + (scaledDownPadding / 2.0f);
-
-    const float lowestY = currentY - ((data.size() - 1) * scaledDownLength) -
-                          (scaledDownPadding / 2.0f);
     
-    const float vertBorderLen = highestY - lowestY;
+    // Top border for all columns
+    Game::main.quadRenderer->prepareRightLine(xPos, yPos, totalWidth);
     
-    // Top border
-    Game::main.quadRenderer->prepareRightLine(xPos, highestY, totalWidth);
-    // Right-most border
-    Game::main.quadRenderer->prepareDownLine(rightMostX, highestY, vertBorderLen);
-
-    // Draw left borders of columns
-    float borderX = xPos;
-    for (int j = 0; j < col_widths.size(); j++)
-    {
-        const float scaledWidth = col_widths[j] * SCALE_FACTOR + scaledColPadding;
-    
-        Game::main.quadRenderer->prepareDownLine(borderX, highestY, vertBorderLen);
-    
-        borderX += scaledWidth;
-    }
-
-    for (int i = 0; i < data.size(); i++)
+    float currentY = yPos - colHeight;
+    for (int i = 0; i < data.size(); i++, currentY -= colHeight)
     {
         if (currentY > Game::main.topY)
         {
-            currentY -= scaledDownLength;
             continue;
         }
-        else if (currentY + scaledDownLength < Game::main.bottomY)
+        else if (currentY + colHeight < Game::main.bottomY)
         {
             break;
         }
         
         glm::vec3 color =
             i == 0 ? glm::vec3(1.0f, 0.5f, 0.5f) : glm::vec3(1.0f, 1.0f, 1.0f);
-
-        const auto &record = data[i];
-
-        const float bottomY = currentY - (scaledDownPadding / 2.0f);
-        // Bottom borders for each row
-        Game::main.quadRenderer->prepareRightLine(xPos, bottomY, scaledTotalWidth);
         
-        // Left border for each row
-        // Game::main.quadRenderer->prepareDownLine(xPos, currentY, -scaledDownLength);
-
+        const auto &record = data[i];
+        float textOrigin = currentY + lowerColHeight;
         float currentX = xPos;
-
-        for (int j = 0; j < record.size(); j++)
+        for (int j = 0; j < record.size(); currentX += col_widths[j], j++)
         {
-            const std::string &item = record[j];
-
-            const int   specificWidth = col_widths[j];
-            const float scaledWidth   = specificWidth * SCALE_FACTOR;
+            // std::cout << "col_widths[" << j << "]: " << col_widths[j] << std::endl;
             
-            if (item.size() > 0)
-            {
-                textRen->renderTextMax(item, currentX, currentY, SCALE_FACTOR,
-                                       color, specificWidth);
-            }
-
-            // Game::main.quadRenderer->prepareDownLine(currentX, currentY, -scaledDownLength);
-            currentX += scaledWidth + scaledColPadding;
+            textRen->renderTextMax(record[j], currentX, textOrigin, 1.0f, color, col_widths[j]);
+            
+            // Left border for each cell
+            Game::main.quadRenderer->prepareDownLine(currentX, currentY, -colHeight);
         }
         
-        currentY -= scaledDownLength;
+        // Right border for last cell in a column
+        Game::main.quadRenderer->prepareDownLine(currentX, currentY, -colHeight);
+        
+        // Bottom border for all columns
+        Game::main.quadRenderer->prepareRightLine(xPos, currentY, totalWidth);
     }
 }

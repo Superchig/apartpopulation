@@ -170,7 +170,7 @@ void QuadRenderer::sendToGL()
 
 void QuadRenderer::prepareDownLine(float x, float y, float height)
 {
-    const float halfWidth = 0.5f;
+    constexpr float halfWidth = 0.5f;
     AttributesQuad quad;
     quad.topRight    = {x + halfWidth, y,            1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f,    whiteTextureIndex};
     quad.bottomRight = {x + halfWidth, y - height,   1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f,    whiteTextureIndex};
@@ -181,7 +181,7 @@ void QuadRenderer::prepareDownLine(float x, float y, float height)
 
 void QuadRenderer::prepareRightLine(float x, float y, float width)
 {
-    const float halfHeight = 0.5f;
+    constexpr float halfHeight = 0.5f;
     AttributesQuad quad;
     quad.topRight    = {x + width, y + halfHeight, 1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f,    whiteTextureIndex};
     quad.bottomRight = {x + width, y - halfHeight, 1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f,    whiteTextureIndex};

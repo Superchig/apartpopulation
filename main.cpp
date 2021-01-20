@@ -208,7 +208,7 @@ int main()
         {
             Game::main.zoomFactor = 1.0f;
             Game::main.eyeX = 0.0f;
-            Game::main.eyeY = -50000.0f;
+            Game::main.eyeY = -20000.0f;
             
             Game::main.updateOrtho();
         }
@@ -313,7 +313,7 @@ int main()
             b->sendToRenderer();
         }
         
-        Game::main.quadRenderer->prepareQuad(glm::vec2(-500.0f, 0.0f), 200.0f, 200.0f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), logh.ID);
+        // Game::main.quadRenderer->prepareQuad(glm::vec2(-500.0f, 0.0f), 200.0f, 200.0f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), logh.ID);
         
         Game::main.quadRenderer->sendToGL();
         Game::main.quadRenderer->resetBuffers();
