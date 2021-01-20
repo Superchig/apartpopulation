@@ -48,3 +48,4 @@ if(NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
 endif()
 
 target_link_libraries(apart-population glfw glad glm freetype)
+set_target_properties(apart-population PROPERTIES CXX_EXTENSIONS OFF)

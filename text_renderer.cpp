@@ -78,7 +78,7 @@ TextRenderer::TextRenderer(const std::string &fontPath, FT_UInt pixelSize)
         
         // Make an RGBA bitmap from FreeType's R bitmap
         const int newBitmapLength = face->glyph->bitmap.width * face->glyph->bitmap.rows * 4;
-        unsigned char rgbaBitmap[newBitmapLength];
+        unsigned char *rgbaBitmap = new unsigned char[newBitmapLength];
         for (int i = 0; i < newBitmapLength; i += 4)
         {
             rgbaBitmap[i]     = UCHAR_MAX; // Red
@@ -91,6 +91,7 @@ TextRenderer::TextRenderer(const std::string &fontPath, FT_UInt pixelSize)
         //                 imageFormat, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
         glTexSubImage2D(GL_TEXTURE_2D, 0, x, 0, face->glyph->bitmap.width, face->glyph->bitmap.rows,
                         imageFormat, GL_UNSIGNED_BYTE, rgbaBitmap);
+        delete[] rgbaBitmap;
 
         // Now store character for later use
         Character character =
