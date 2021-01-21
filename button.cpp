@@ -7,7 +7,7 @@
 Button::Button(float x, float y, int width, int height, Texture2D *texture,
                TextRenderer *textRen, std::string text, float vertPadding)
     : x(x), y(y), width(width), height(height), texture(texture),
-      textRen(textRen), text(text), vertPadding(vertPadding)
+      textRen(textRen), text(text), vertPadding(vertPadding), isClicked(false)
 {
 }
 

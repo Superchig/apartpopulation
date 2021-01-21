@@ -20,9 +20,12 @@ class Button
     
     std::string text;
     float vertPadding;
+
+    bool isClicked;
     
     // TODO: Clean up button callback syntax
-    std::function<void(Button *button)> callback;
+    std::function<void(Button *button)> onClickStart;
+    std::function<void(Button *button)> onClickStop;
 
     Button(float x, float y, int width, int height, Texture2D *texture,
            TextRenderer *textRen, std::string text = std::string(),

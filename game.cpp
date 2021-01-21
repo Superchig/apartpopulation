@@ -3,7 +3,9 @@
 
 void Game::updateOrtho()
 {
-    this->projection = glm::ortho(-640.0f * this->zoomFactor, 640.0f * this->zoomFactor,
-                                  -360.0f * this->zoomFactor, 360.0f * this->zoomFactor,
+    const float halfWidth = windowWidth / 2.0f;
+    const float halfHeight = windowHeight / 2.0f;
+    this->projection = glm::ortho(-halfWidth * this->zoomFactor, halfWidth * this->zoomFactor,
+                                  -halfHeight * this->zoomFactor, halfHeight * this->zoomFactor,
                                   0.1f, 1500.0f);
 }

@@ -22,10 +22,12 @@ class Game
     float       playerX      = 0.0f;
     float       playerY      = 0.0f;
     const float playerChange = 5.0f;
-    float zoomFactor = 1.0f;
+    float       zoomFactor   = 1.0f;
 
     float mouseX;
     float mouseY;
+    float deltaMouseX = 0.0f;
+    float deltaMouseY = 0.0f;
 
     std::vector<Button *> buttons;
 

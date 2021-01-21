@@ -23,11 +23,13 @@
   index (tentatively)
 - [x] Render all text of the same font and size in one draw call
 - [x] Render lines in table with tiny quads
+- [x] Mark off some old TODOs
+- [x] Cull parts of table that aren't on screen
 
 # Current Goal
-- Mark off a bunch of old TODOs
-- "Cull" quads that aren't in view, so that OpenGL isn't told to render them
+- Add actual table-scrolling functionality to scrollbar
 - Add scrollbars/render text or tables more efficiently
+- Use enum classes rather than enums
 
 # Future Programming Ideas
 - Modern C++ (C++11, C++14, C++17, C++20)

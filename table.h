@@ -8,6 +8,7 @@
 
 #include "shader.h"
 #include "text_renderer.h"
+#include "button.h"
 
 // This shall be a spreadsheet-like table of values
 class Table
@@ -18,10 +19,14 @@ class Table
     // Mark upper-left corners
     float                                      xPos;
     float                                      yPos;
+    float                                      yOffset;
+    float                                      yDownLength;
     size_t                                     rows;
     TextRenderer *                             textRen;
     std::vector<std::array<std::string, COLS>> data;
     std::array<int, COLS>                      col_widths;
+
+    Button *scrollButton;
 
     Table(float xPos, float yPos, int rows, TextRenderer *textRen);
 
