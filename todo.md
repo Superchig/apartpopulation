@@ -30,6 +30,7 @@
 - Add actual table-scrolling functionality to scrollbar
 - Add scrollbars/render text or tables more efficiently
 - Use enum classes rather than enums
+- Make white texture accessible as a Texture2D object
 
 # Future Programming Ideas
 - Modern C++ (C++11, C++14, C++17, C++20)

@@ -169,7 +169,7 @@ int main()
     
     glCheckError();
 
-    Button testMoveButton{-300.0f, 0.0f, 20, 200, &container, &textRen};
+    Button testMoveButton{-300.0f, 0.0f, 20, 40, &container, &textRen};
     spreadTable.scrollButton    = &testMoveButton;
     // testMoveButton.y         = spreadTable.yPos - testMoveButton.height / 2.0f;
     Game::main.buttons.push_back(&testMoveButton);
@@ -251,6 +251,17 @@ int main()
         else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         {
             Game::main.playerX -= Game::main.playerChange;
+        }
+        
+        if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS)
+        {
+            spreadTable.yOffset -= 10.0f;
+            std::cout << "yOffset: " << spreadTable.yOffset << std::endl;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS)
+        {
+            spreadTable.yOffset += 10.0f;
+            std::cout << "yOffset: " << spreadTable.yOffset << std::endl;
         }
 
         glm::vec3 eye    = glm::vec3(Game::main.eyeX, Game::main.eyeY, Game::main.eyeZ);

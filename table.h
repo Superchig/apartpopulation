@@ -19,6 +19,7 @@ class Table
     // Mark upper-left corners
     float                                      xPos;
     float                                      yPos;
+    // The distance from the top of the first rendered row to the "invisible position" of the first row
     float                                      yOffset;
     float                                      yDownLength;
     size_t                                     rows;

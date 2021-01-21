@@ -5,8 +5,18 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+inline float lerp(float a, float b, float f) 
+{
+    return (a * (1.0 - f)) + (b * f);
+}
+
+inline float proportionalize(float begin, float end, float between)
+{
+    return (between - begin) / (end - begin);
+}
+
 Table::Table(float xPos, float yPos, int rows, TextRenderer *textRen)
-    : xPos(xPos), yPos(yPos), yOffset(0), yDownLength(0), rows(rows),
+    : xPos(xPos), yPos(yPos), yOffset(0.0f), yDownLength(0.0f), rows(rows),
       textRen(textRen), data(rows), scrollButton(nullptr)
 {
     col_widths.fill(-1);
@@ -32,13 +42,14 @@ void Table::sendToRenderer()
     const float upperColHeight = textRen->atlasHeight;
     const float lowerColHeight = textRen->atlasHeight * 0.25f;
     const float colHeight = upperColHeight + lowerColHeight;
-
-    const float topY    = yPos + colHeight * data.size();
-    const float bottomY = yPos - yDownLength;
-    const float scrollProportion = (yPos - scrollButton->y - scrollButton->height / 2.0f) / yDownLength;
-    const float heightProportion = yDownLength / (colHeight * data.size());
-
+    
+    const float dataWorldHeight = colHeight * data.size();
+    
+    const float heightProportion = yDownLength / dataWorldHeight;
     scrollButton->height = heightProportion * yDownLength;
+    // const float scrollProportion = (yPos - scrollButton->y - scrollButton->height / 2.0f) / yDownLength;
+    
+    const float bottomY = yPos - yDownLength;
  
     // Calculate total column width
     float totalWidth = 0;
@@ -47,7 +58,7 @@ void Table::sendToRenderer()
         totalWidth += width;
     }
 
-    float currentY = yPos + (scrollProportion * colHeight * data.size()) - colHeight;
+    float currentY = yPos + yOffset - colHeight;
     for (int i = 0; i < data.size(); i++, currentY -= colHeight)
     {
         if (currentY > Game::main.topY || currentY > yPos)
@@ -89,12 +100,17 @@ void Table::sendToRenderer()
     // ----------------------------------------
     scrollButton->x = xPos + totalWidth + scrollButton->width / 2.0f;
     
+    const float downProp = yOffset / dataWorldHeight;
+    const float scrollYTop = yPos - (downProp * yDownLength);
+    const float scrollY = scrollYTop - (scrollButton->height / 2.0f);
+    
+    scrollButton->y = scrollY;
+    
     if (scrollButton->isClicked)
     {
-        scrollButton->y += Game::main.deltaMouseY;
-
         const float halfHeight = scrollButton->height / 2.0f;
-
+    
+        scrollButton->y += Game::main.deltaMouseY;
         if (scrollButton->y > yPos - halfHeight)
         {
             scrollButton->y = yPos - halfHeight;
@@ -103,5 +119,7 @@ void Table::sendToRenderer()
         {
             scrollButton->y = bottomY + halfHeight;
         }
+        
+        yOffset = dataWorldHeight * (yPos - scrollButton->y - (scrollButton->height / 2.0f)) / yDownLength;
     }
 }
