@@ -8,7 +8,7 @@
 #include "check_error.h"
 #include "game.h"
 
-QuadRenderer::QuadRenderer() : batches(1), shader("shaders/quad.vert", "shaders/quad.frag")
+QuadRenderer::QuadRenderer(GLuint whiteTexture) : batches(1), shader("shaders/quad.vert", "shaders/quad.frag")
 {
     GLuint quadIBO;
     glCheckError();
@@ -76,19 +76,8 @@ QuadRenderer::QuadRenderer() : batches(1), shader("shaders/quad.vert", "shaders/
     }
     glUniform1iv(location, MAX_TEXTURES_PER_BATCH, samplers);
     
-    // Create white texture as the first texture
+    // Use white texture as the first texture
     // -----------------------------------------
-    unsigned char data[] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
-    
-    GLuint whiteTexture;
-    glGenTextures(1, &whiteTexture);
-    glBindTexture(GL_TEXTURE_2D, whiteTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
     this->textureIDs.push_back(whiteTexture);
     whiteTextureIndex = 0.0f;
 }

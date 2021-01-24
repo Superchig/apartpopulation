@@ -19,9 +19,9 @@ class Game
     float       eyeX = 0.0f;
     float       eyeY = 0.0f;
     float       eyeZ = 1000.0f;
-    float       playerX      = 0.0f;
-    float       playerY      = 0.0f;
-    const float playerChange = 5.0f;
+    // float       playerX      = 0.0f;
+    // float       playerY      = 0.0f;
+    // const float playerChange = 5.0f;
     float       zoomFactor   = 1.0f;
 
     float mouseX;

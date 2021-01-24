@@ -96,8 +96,10 @@ int main()
     // Load shaders and other resources
     // --------------------------------
     
+    Texture2D *whiteTexture = Texture2D::newWhiteTexture();
+    
     // Initialize Game::main.quadRenderer before any text renderers
-    QuadRenderer quadRenderer;
+    QuadRenderer quadRenderer{whiteTexture->ID};
     Texture2D logh{"sprites/logh.png", true};
     Texture2D container{"sprites/container.jpg", false};
     Texture2D buttonNormal{"sprites/adwitr-5th-button0.png", true, GL_NEAREST};
@@ -235,24 +237,6 @@ int main()
             Game::main.eyeX += eyeChange(Game::main.eyeZ);
         }
 
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        {
-            Game::main.playerY += Game::main.playerChange;
-        }
-        else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        {
-            Game::main.playerY -= Game::main.playerChange;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        {
-            Game::main.playerX += Game::main.playerChange;
-        }
-        else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        {
-            Game::main.playerX -= Game::main.playerChange;
-        }
-        
         if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS)
         {
             spreadTable.yOffset -= 10.0f;
@@ -262,6 +246,20 @@ int main()
         {
             spreadTable.yOffset += 10.0f;
             std::cout << "yOffset: " << spreadTable.yOffset << std::endl;
+        }
+        
+        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+        {
+            if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+            {
+                spreadTable.isActive = false;
+                spreadTable.scrollButton->isActive = false;
+            }
+            else
+            {
+                spreadTable.isActive = true;
+                spreadTable.scrollButton->isActive = true;
+            }
         }
 
         glm::vec3 eye    = glm::vec3(Game::main.eyeX, Game::main.eyeY, Game::main.eyeZ);
@@ -320,14 +318,38 @@ int main()
         textRen.renderText(marriageEligible, -640.0f, Game::main.windowHeight / 2.0f - 32.0f * 5.0f,
                            1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         
-        Game::main.quadRenderer->prepareQuad(glm::vec2(Game::main.playerX, Game::main.playerY),
-                                             200.0f, 200.0f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), container.ID);
+        // Game::main.quadRenderer->prepareQuad(glm::vec2(Game::main.playerX, Game::main.playerY),
+        //                                      200.0f, 200.0f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), container.ID);
         
-        spreadTable.sendToRenderer();
+        constexpr float PADDING = 10.0f;
+        constexpr float SQUARE_LENGTH = 30.0f;
+        constexpr float HALF_LEN = SQUARE_LENGTH * 0.5f;
+        constexpr float MOVE = SQUARE_LENGTH + PADDING;
+        constexpr int ROWS = 10;
+        constexpr int COLS = 10;
+        for (int i = 0; i < ROWS; i++)
+        {
+            for (int j = 0; j < COLS; j++)
+            {
+                const float centerX = -100.0f + (j * MOVE);
+                const float centerY = 200.0f - (i * MOVE);
+                Game::main.quadRenderer->prepareQuad(glm::vec2(centerX, centerY), SQUARE_LENGTH, SQUARE_LENGTH,
+                                                     glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), whiteTexture->ID);
+                textRen.renderText("0", centerX - HALF_LEN, centerY - HALF_LEN, 1.0f, glm::vec3(0.5f, 0.5f, 0.5f));
+            }
+        }
+        
+        if (spreadTable.isActive)
+        {
+            spreadTable.sendToRenderer();
+        }
         
         for (Button *b : Game::main.buttons)
         {
-            b->sendToRenderer();
+            if (b->isActive)
+            {
+                b->sendToRenderer();
+            }
         }
         
         // Game::main.quadRenderer->prepareQuad(glm::vec2(-500.0f, 0.0f), 200.0f, 200.0f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), logh.ID);
@@ -352,6 +374,8 @@ int main()
     {
         delete figure;
     }
+    
+    delete whiteTexture;
 
     glfwTerminate();
     return 0;
@@ -363,7 +387,7 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
     {
         for (Button *button : Game::main.buttons)
         {
-            if (button->hasInBounds(Game::main.mouseX, Game::main.mouseY))
+            if (button->isActive && button->hasInBounds(Game::main.mouseX, Game::main.mouseY))
             {
                 button->isClicked = true;
 

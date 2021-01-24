@@ -7,7 +7,13 @@
 
 class Texture2D
 {
+  private:
+    Texture2D(); // For white texture
+
   public:
+      
+    static Texture2D *newWhiteTexture();
+      
     GLuint       ID;
     unsigned int width;
     unsigned int height;

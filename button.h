@@ -14,6 +14,7 @@ class Button
     float y;
     int width;
     int height;
+    bool isActive;
 
     Texture2D *texture;
     TextRenderer *textRen;

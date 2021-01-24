@@ -19,12 +19,14 @@ class Table
     // Mark upper-left corners
     float                                      xPos;
     float                                      yPos;
+    bool                                       isActive;
     // The distance from the top of the first rendered row to the "invisible position" of the first row
     float                                      yOffset;
     float                                      yDownLength;
     size_t                                     rows;
     TextRenderer *                             textRen;
     std::vector<std::array<std::string, COLS>> data;
+    // TODO: Rename in its own commit
     std::array<int, COLS>                      col_widths;
 
     Button *scrollButton;

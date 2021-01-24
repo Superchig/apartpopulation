@@ -162,7 +162,7 @@ float TextRenderer::renderTextPart(std::string_view text, float x, float y,
 }
 
 void TextRenderer::renderText(std::string_view text, float x, float y,
-                         float scale, glm::vec3 color)
+                              float scale, glm::vec3 color)
 {
     renderTextPart(text, x, y, scale, color);
 }

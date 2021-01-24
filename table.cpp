@@ -5,18 +5,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-inline float lerp(float a, float b, float f) 
-{
-    return (a * (1.0 - f)) + (b * f);
-}
-
-inline float proportionalize(float begin, float end, float between)
-{
-    return (between - begin) / (end - begin);
-}
-
 Table::Table(float xPos, float yPos, int rows, TextRenderer *textRen)
-    : xPos(xPos), yPos(yPos), yOffset(0.0f), yDownLength(0.0f), rows(rows),
+    : xPos(xPos), yPos(yPos), isActive(true), yOffset(0.0f), yDownLength(0.0f), rows(rows),
       textRen(textRen), data(rows), scrollButton(nullptr)
 {
     col_widths.fill(-1);
@@ -94,8 +84,7 @@ void Table::sendToRenderer()
         // Bottom border for all columns
         Game::main.quadRenderer->prepareRightLine(xPos, currentY, totalWidth);
     }
-
-
+    
     // Update the position of the scroll button
     // ----------------------------------------
     scrollButton->x = xPos + totalWidth + scrollButton->width / 2.0f;
