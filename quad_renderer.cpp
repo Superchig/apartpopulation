@@ -8,7 +8,7 @@
 #include "check_error.h"
 #include "game.h"
 
-QuadRenderer::QuadRenderer(GLuint whiteTexture) : batches(1), shader("shaders/quad.vert", "shaders/quad.frag")
+QuadRenderer::QuadRenderer(GLuint whiteTexture) : batches(1), shader("shaders/quad.vert", "shaders/quad.frag"), whiteTextureID(whiteTexture)
 {
     GLuint quadIBO;
     glCheckError();

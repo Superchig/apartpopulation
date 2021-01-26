@@ -14,7 +14,7 @@
 class Table
 {
   public:
-    static const size_t COLS = 4;
+    static constexpr size_t COLS = 5;
 
     // Mark upper-left corners
     float                                      xPos;

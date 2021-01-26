@@ -38,6 +38,8 @@
 - [x] Make white texture accessible as a Texture2D object
 
 # Current Goal
+- Rewrite the (very buggy and broken) Family system to use a tree-node
+  structure of some kind
 - Move the pass buttons and noble table with the camera
 - Implement basic sprite grid to represent controlled land using the white
   texture (but colored accordingly)

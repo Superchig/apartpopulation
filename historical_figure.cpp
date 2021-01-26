@@ -10,7 +10,7 @@ int randSkill();
 int randInRange(int min, int max);
 
 HistoricalFigure::HistoricalFigure(const std::string &name)
-    : id(++count), name(name), birthDay(Game::main.date), age(0),  prestige(0), desiredKids(2),
+    : id(++count), name(name), birthDay(Game::main.date), age(0),  prestige(0), desiredKids(2), isAlive(true),
       politicalStrategy(Wastrel), appointStrategy(Random), parent1(nullptr), parent2(nullptr),
       spouse(nullptr), kids()
 {
@@ -26,7 +26,7 @@ HistoricalFigure::HistoricalFigure(const std::string &name)
 
 HistoricalFigure::HistoricalFigure() : HistoricalFigure("Pre-Default Name")
 {
-    this->name = "Noble " + std::to_string(this->id);
+    this->name = "Figure " + std::to_string(this->id);
 }
 
 HistoricalFigure::HistoricalFigure(int age) : HistoricalFigure()

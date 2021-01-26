@@ -19,17 +19,24 @@
 #include "button.h"
 #include "historical_figure.h"
 #include "easy_rand.h"
+#include "land_plot.h"
 
 Game Game::main;
 
 float eyeChange(float eyeZ) { return 10.0f * Game::main.zoomFactor; }
 
 void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
-
 void advanceMonthCallback(Button *button);
 void advanceYearCallback(Button *button);
 void advanceMonth();
 void syncPopTable(Table &popTable);
+
+HistoricalFigure *createSettler(LandPlot *plot);
+void moveToPart(HistoricalFigure *figure, Family *target);
+void fMoveToPart(Family *family, LandPlot *target);
+void deleteFamily(Family *family);
+
+template<class T> void removeItem(std::vector<T> vec, T item);
 
 int main()
 {
@@ -141,27 +148,58 @@ int main()
     passYearButton.onClickStart = advanceYearCallback;
     Game::main.buttons.push_back(&passYearButton);
     
-    // Set up initial noble population
+    // Set up initial population
     // -------------------------------
-    for (int i = 0; i < 20; i++)
+    
+    // Create land grid
+    Grid landGrid{&textRen, 10, 10};
+    Game::main.landGrid = &landGrid;
+    
+    for (int i = 0; i < 10; i++)
     {
-        Game::main.livingFigures.push_back(new HistoricalFigure(18));
+        Family *family = new Family();
+        HistoricalFigure *father = new HistoricalFigure(18);
+        HistoricalFigure *mother = new HistoricalFigure(18);
+        
+        family->head = father;
+
+        moveToPart(father, family);
+        moveToPart(mother, family);
+        
+        father->sex = Sex::Male;
+        mother->sex = Sex::Female;
+        father->spouse = mother;
+        mother->spouse = father;
+        
+        Game::main.livingFigures.push_back(father);
+        Game::main.livingFigures.push_back(mother);
+        
+        Game::main.landGrid->plot(0, 0).families.push_back(family);
+        family->plot = &Game::main.landGrid->plot(0, 0);
     }
+    
+    // for (int i = 0; i < 20; i++)
+    // {
+    //     Game::main.livingFigures.push_back(new HistoricalFigure(18));
+    // }
 
     // Initialize and set up table
     // ---------------------------
     Table spreadTable(-200.0f, 300.0f, Game::main.livingFigures.size() + 1,
                       &textRen);
     Game::main.spreadTable = &spreadTable;
+    spreadTable.isActive = false;
     spreadTable.yDownLength = 0.85f * Game::main.windowHeight;
-    spreadTable.setColWidth(0, 300);
+    spreadTable.setColWidth(0, 200);
     spreadTable.setColWidth(1, 100);
     spreadTable.setColWidth(2, 100);
-    spreadTable.setColWidth(3, 300);
+    spreadTable.setColWidth(3, 200);
+    spreadTable.setColWidth(4, 200);
     spreadTable.setItem(0, 0, "Name");
     spreadTable.setItem(0, 1, "Age");
     spreadTable.setItem(0, 2, "Sex");
     spreadTable.setItem(0, 3, "Spouse");
+    spreadTable.setItem(0, 4, "Family Head");
     
     syncPopTable(spreadTable);
 
@@ -171,11 +209,12 @@ int main()
     
     glCheckError();
 
-    Button testMoveButton{-300.0f, 0.0f, 20, 40, &container, &textRen};
-    spreadTable.scrollButton    = &testMoveButton;
+    Button tableScroll{-300.0f, 0.0f, 20, 40, &container, &textRen};
+    spreadTable.scrollButton    = &tableScroll;
+    tableScroll.isActive = false;
     // testMoveButton.y         = spreadTable.yPos - testMoveButton.height / 2.0f;
-    Game::main.buttons.push_back(&testMoveButton);
-
+    Game::main.buttons.push_back(&tableScroll);
+    
     while (!glfwWindowShouldClose(window))
     {
         // Handle user input
@@ -191,7 +230,7 @@ int main()
             // Game::main.eyeZ -= zChange;
             // std::cout << "Game::main.eyeZ: " << Game::main.eyeZ << std::endl;
             Game::main.zoomFactor -= 0.01f;
-            
+
             Game::main.updateOrtho();
         }
         else if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
@@ -318,26 +357,7 @@ int main()
         textRen.renderText(marriageEligible, -640.0f, Game::main.windowHeight / 2.0f - 32.0f * 5.0f,
                            1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         
-        // Game::main.quadRenderer->prepareQuad(glm::vec2(Game::main.playerX, Game::main.playerY),
-        //                                      200.0f, 200.0f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), container.ID);
-        
-        constexpr float PADDING = 10.0f;
-        constexpr float SQUARE_LENGTH = 30.0f;
-        constexpr float HALF_LEN = SQUARE_LENGTH * 0.5f;
-        constexpr float MOVE = SQUARE_LENGTH + PADDING;
-        constexpr int ROWS = 10;
-        constexpr int COLS = 10;
-        for (int i = 0; i < ROWS; i++)
-        {
-            for (int j = 0; j < COLS; j++)
-            {
-                const float centerX = -100.0f + (j * MOVE);
-                const float centerY = 200.0f - (i * MOVE);
-                Game::main.quadRenderer->prepareQuad(glm::vec2(centerX, centerY), SQUARE_LENGTH, SQUARE_LENGTH,
-                                                     glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), whiteTexture->ID);
-                textRen.renderText("0", centerX - HALF_LEN, centerY - HALF_LEN, 1.0f, glm::vec3(0.5f, 0.5f, 0.5f));
-            }
-        }
+        landGrid.draw();
         
         if (spreadTable.isActive)
         {
@@ -373,6 +393,14 @@ int main()
     for (const HistoricalFigure *figure : Game::main.deadFigures)
     {
         delete figure;
+    }
+    
+    for (LandPlot &plot : Game::main.landGrid->land)
+    {
+        for (Family *family : plot.families)
+        {
+            delete family;
+        }
     }
     
     delete whiteTexture;
@@ -486,11 +514,13 @@ void advanceMonth()
                     HistoricalFigure *newKid = new HistoricalFigure(0);
                     newKid->parent1          = figure;
                     newKid->parent2          = spouse;
-                    std::cout << "newKid's name: " << newKid->name << std::endl;
+                    moveToPart(newKid, figure->family);
 
                     figure->kids.push_back(newKid);
                     spouse->kids.push_back(newKid);
                     Game::main.livingFigures.push_back(newKid);
+                    
+                    std::cout << "newKid's name: " << newKid->name << std::endl;
                 }
             }
         }
@@ -499,21 +529,190 @@ void advanceMonth()
         if (figure->age >= 80)
         {
             int dieRoll = randInRange(1, 48);
-
+            
+            // Definitely die
+            // TODO: Check if the family effects are correct
+            // TODO: Branch families out upon the death of the head
             if (dieRoll == 1)
             {
+                std::cout << figure->name
+                          << " has died of old age. May they rest in peace."
+                          << std::endl;
+            
                 auto figureIt = Game::main.livingFigures.begin() + i;
                 Game::main.livingFigures.erase(figureIt);
                 Game::main.deadFigures.push_back(figure);
-
+                figure->isAlive = false;
+                
                 if (figure->spouse != nullptr)
                 {
                     figure->spouse->spouse = nullptr;
                 }
-
-                std::cout << figure->name
-                          << " has died of old age. May they rest in peace."
-                          << std::endl;
+                
+                // Select new family head if necessary
+                if (figure == figure->family->head)
+                {
+                    std::cout << "\tThey were the head of their family. Now succession shall occur." << std::endl;
+                    
+                    HistoricalFigure *eldestLivingMember = nullptr;
+                    int maxAge = -1;
+                    for (HistoricalFigure *member : figure->family->members)
+                    {
+                        if (member->isAlive && member->age > maxAge && member != figure && member != figure->spouse)
+                        {
+                            eldestLivingMember = member;
+                            maxAge = member->age;
+                        }
+                    }
+                    
+                    if (eldestLivingMember == nullptr)
+                    {
+                        HistoricalFigure *eldestHeir = nullptr;
+                        maxAge = -1;
+                        for (HistoricalFigure *member : figure->family->members)
+                        {
+                            if (member != figure && member->isAlive && member->age > maxAge)
+                            {
+                                eldestHeir = member;
+                                maxAge = member->age;
+                            }
+                        }
+                        
+                        // There are no eligible heirs, so the family is destroyed
+                        if (eldestHeir == nullptr)
+                        {
+                            auto &families = figure->family->plot->families;
+                            auto familyIt = std::find(std::begin(families), std::end(families), figure->family);
+                            families.erase(familyIt);
+                            // delete figure->family;
+                            deleteFamily(figure->family);
+                            
+                            std::cout << "\tWith no viable heirs, the family crumbles!" << std::endl;
+                        }
+                        else
+                        {
+                            figure->family->head = eldestHeir;
+                            
+                            std::cout << "\tThe eldest member of the family, " << eldestHeir->name << ", inherits!" << std::endl;
+                        }
+                    }
+                    else if (eldestLivingMember->age >= 18)
+                    {
+                        // TODO: Verify that the family double-references check out
+                        
+                        // Create the family for the eldest living member
+                        Family *firstFamily = new Family();
+                        firstFamily->head = eldestLivingMember;
+                        fMoveToPart(firstFamily, figure->family->plot);
+                        
+                        moveToPart(eldestLivingMember, firstFamily);
+                        if (eldestLivingMember->spouse != nullptr)
+                        {
+                            moveToPart(eldestLivingMember->spouse, firstFamily);
+                        }
+                        
+                        // Create the families for the other living kids
+                        // TODO: Consider using a more tree-like structure for families?
+                        std::cout << "\tMoved family members: " << std::endl;
+                        for (HistoricalFigure *member : figure->family->members)
+                        {
+                            if (member == figure || !member->isAlive) // No need to move the family head himself, since he's dead
+                            {
+                                continue;
+                            }
+                            std::cout << "\t\tConsidered: " << member->name;
+                            
+                            if (member == figure->spouse)
+                            {
+                                std::cout << ", spouse moves to new family of the eldest";
+                                moveToPart(member, firstFamily);
+                            }
+                            else if (member == eldestLivingMember)
+                            {
+                                std::cout << ", split into new family as the eldest";
+                            }
+                            else if (member->age >= 18)
+                            {
+                                Family *youngFamily = new Family();
+                                youngFamily->head = member;
+                                fMoveToPart(youngFamily, figure->family->plot);
+                                
+                                if (member->spouse == eldestLivingMember)
+                                {
+                                    std::cout << ", spouse of eldest so moves to their new family";
+                                    
+                                    moveToPart(member, firstFamily);
+                                }
+                                else if (member->sex == Sex::Male)
+                                {
+                                    std::cout << ", split into new family";
+                                    
+                                    moveToPart(member, youngFamily);
+                                    
+                                    if (member->spouse != nullptr)
+                                    {
+                                        std::cout << ", brought their spouse (" << member->spouse->name << ")";
+                                        
+                                        moveToPart(member->spouse, youngFamily);
+                                    }
+                                }
+                                else if (member->sex == Sex::Female)
+                                {
+                                    if (member->spouse == nullptr)
+                                    {
+                                        std::cout << ", unmarried, so entered family of eldest member." << std::endl;
+                                        
+                                        moveToPart(member, firstFamily);
+                                    }
+                                    else
+                                    {
+                                        std::cout << ", married female so probably moved with husband";
+                                    }
+                                }
+                                
+                                // TODO: Check that family references check out
+                            }
+                            else
+                            {
+                                std::cout << ", moved into eldest living member's new family b/c minor (age " << member->age << ")";
+                                
+                                moveToPart(member, firstFamily);
+                            }
+                            
+                            std::cout << std::endl;
+                            
+#ifndef NDEBUG
+                            if (member->family == figure->family && member != figure)
+                            {
+                                std::cout << "\tERROR::FAMILY_SUCCESSION: " << member->name << " still has a pointer to their original family!" << std::endl;
+                            }
+#endif
+                        } 
+                        
+                        auto &families = figure->family->plot->families;
+                        auto familyIt = std::find(std::begin(families), std::end(families), figure->family);
+                        families.erase(familyIt);
+                        // delete figure->family;
+                        deleteFamily(figure->family);
+                        
+                        std::cout << "\tWith their family head gone, the family splits off into new, smaller families, with "
+                            << eldestLivingMember->name << " retaining the best claim to the family name as its eldest child." << std::endl;
+                    }
+                    else if (figure->spouse != nullptr)
+                    {
+                        figure->family->head = figure->spouse;
+                        
+                        std::cout << "\tWith no adult children, the spouse, " << figure->spouse->name
+                                  << ", becomes the new head of the family." << std::endl;
+                    }
+                    else
+                    {
+                        figure->family->head = eldestLivingMember; // Do this even if the kid is not an adult
+                        
+                        std::cout << "\tEven though there are no adult children, the oldest of the kids, "
+                                  << eldestLivingMember->name << ", steps up to the plate." << std::endl;
+                    }
+                }
             }
         }
     }
@@ -557,18 +756,64 @@ void advanceMonth()
             }
         }
 
+        // Marry the happy couple
         if (spouse != nullptr)
         {
-            figure->spouse = spouse;
-            spouse->spouse = figure;
-
-            marriageEligible.erase(spouseIterator);
-
             std::cout << figure->name << " and " << spouse->name
                       << " become happily married!" << std::endl;
+            
+            figure->spouse = spouse;
+            spouse->spouse = figure;
+            
+            HistoricalFigure *husband = nullptr;
+            HistoricalFigure *wife = nullptr;
+            if (figure->sex == Sex::Male)
+            {
+                husband = figure;
+                wife = spouse;
+            }
+            else
+            {
+                husband = spouse;
+                wife = figure;
+            }
+            
+            // Handle how the marriage affects the couple's families
+            auto extraFamily = wife->family;
+            auto extraHead   = wife->family->head;
+            if (wife->family->head == wife)
+            {
+                // Merge the wife's family into the husband's family
+                for (HistoricalFigure *member : wife->family->members)
+                {
+                    moveToPart(member, husband->family);
+                }
+                
+                auto &families = wife->family->plot->families;
+                auto familyIt = std::find(std::begin(families), std::end(families), wife->family);
+                families.erase(familyIt);
+                // delete wife->family;
+                deleteFamily(wife->family);
+                
+                std::cout << "\tThe newlywed wife, once the head of her family, moves in with her husband, resulting in a merger." << std::endl;
+            }
+            else
+            {
+                auto wifeIt = std::find(wife->family->members.begin(), wife->family->members.end(), wife);
+                if (wifeIt == wife->family->members.end())
+                {
+                    std::cout << "ERROR::wife: " << wife->name << " is not in her family, which is strange." << std::endl;
+                }
+                wife->family->members.erase(wifeIt);
+                husband->family->members.push_back(wife);
+                
+                std::cout << "\tThe newlywed wife moves to her husband's family." << std::endl;
+            }
+            
+            marriageEligible.erase(spouseIterator);
         }
     }
-
+    
     // Update table UI
     // ---------------
     syncPopTable(*Game::main.spreadTable);
@@ -593,5 +838,40 @@ void syncPopTable(Table &popTable)
         popTable.setItem(i + 1, 1, std::to_string(figure->age));
         popTable.setItem(i + 1, 2, sexStrings[figure->sex]);
         popTable.setItem(i + 1, 3, figure->getSpouseName());
+        auto extraFamily = figure->family;
+        auto extraHead = figure->family->head;
+        if (extraHead == nullptr)
+        {
+            std::cout << "ERROR::syncPopTable: extraHead is nullptr!" << std::endl;
+            std::cout << "\tfigure->name: " << figure->name << std::endl;
+        }
+        auto extraName = figure->family->head->name;
+        popTable.setItem(i + 1, 4, figure->family->head->name);
     }
+}
+
+void moveToPart(HistoricalFigure *figure, Family *target)
+{
+    target->members.push_back(figure);
+    figure->family = target;
+}
+
+
+void fMoveToPart(Family *family, LandPlot* target)
+{
+    target->families.push_back(family);
+    family->plot = target;
+}
+
+void deleteFamily(Family *family)
+{
+    std::cout << "\tDeleting family headed by " << family->head->name << "." << std::endl;
+    
+    delete family;
+}
+
+template<class T> void removeItem(std::vector<T> vec, T item)
+{
+    auto it = std::find(std::begin(vec), std::end(vec), item);
+    vec.erase(it);
 }

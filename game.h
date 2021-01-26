@@ -9,6 +9,7 @@
 class HistoricalFigure;
 class Button;
 class Table;
+class Grid;
 
 // Global state
 class Game
@@ -43,14 +44,16 @@ class Game
     glm::mat4 projection;
     
     QuadRenderer *quadRenderer;
-    
+
 #pragma region Simulation
     std::vector<HistoricalFigure *> livingFigures;
     std::vector<HistoricalFigure *> deadFigures;
-    
+
     int marriageEligible;
     
     Date date = {1, JAN};
+    
+    Grid *landGrid;
 #pragma endregion
     
     // TODO: Avoid using global state to make spreadTable accessible

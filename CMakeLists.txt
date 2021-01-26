@@ -30,7 +30,9 @@ set(BASE_SRCS
     easy_rand.h
     easy_rand.cpp
     quad_renderer.h
-    quad_renderer.cpp)
+    quad_renderer.cpp
+    land_plot.h
+    land_plot.cpp)
 
 add_executable(apart-population ${BASE_SRCS})
 
