@@ -5,7 +5,7 @@
 #include <vector>
 #include "calendar.h"
 
-class Family;
+class FamilyNode;
 
 enum PoliticalStrategy
 {
@@ -48,7 +48,7 @@ class HistoricalFigure
     
     std::vector<HistoricalFigure *> kids;
     
-    Family *family;
+    FamilyNode *family;
     
     HistoricalFigure();
     HistoricalFigure(int age);

@@ -2,6 +2,16 @@
 
 #include "game.h"
 
+FamilyNode::FamilyNode(FamilyNode *leader, HistoricalFigure *head,
+                       LandPlot *plot)
+    : leader(leader), head(head), plot(plot), defunct(false)
+{
+    if (this->head != nullptr)
+    {
+        this->head->family = this;
+    }
+}
+
 Grid::Grid(TextRenderer *textRen, int rows, int cols)
     : rows(rows), cols(cols), land(rows * cols), textRen(textRen)
 {
@@ -36,7 +46,7 @@ void Grid::draw()
             const float squareY = startingY - (i * -MOVE);
             Game::main.quadRenderer->prepareQuad(glm::vec2(squareX, squareY), SQUARE_LENGTH, SQUARE_LENGTH,
                                                  glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), Game::main.quadRenderer->whiteTextureID);
-            textRen->renderText(std::to_string(plot(j, i).families.size()),
+            textRen->renderText(std::to_string(plot(j, i).rootFamilies.size()),
                                 squareX - HALF_LEN, squareY - HALF_LEN, 1.0f, glm::vec3(0.5f, 0.5f, 0.5f));
         }
     }

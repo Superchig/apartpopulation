@@ -5,16 +5,20 @@
 #include "historical_figure.h"
 #include "text_renderer.h"
 
-class Family;
+class FamilyNode;
 class LandPlot;
 class Grid;
 
-class Family
+class FamilyNode
 {
 public:
-    HistoricalFigure *head;
-    std::vector<HistoricalFigure *> members;
-    LandPlot *plot = nullptr;
+    HistoricalFigure *        head;
+    FamilyNode *              leader;
+    std::vector<FamilyNode *> orbit;
+    LandPlot *                plot;
+    bool                      defunct;
+
+    FamilyNode(FamilyNode *leader, HistoricalFigure *head, LandPlot *plot);
 };
 
 class LandPlot
@@ -23,7 +27,7 @@ public:
     int mapX;
     int mapY;
     
-    std::vector<Family *> families;
+    std::vector<FamilyNode *> rootFamilies;
 };
 
 class Grid

@@ -12,3 +12,8 @@
 
 ## Notes
 - One of the above outcomes should happen whenever the head of a family dies
+
+## References to a FamilyNode
+- Each of its orbiters has it as their leader
+- The head has a reference to it as its family
+- If its leader is nullptr, then its plot will have a reference to it as a root family
