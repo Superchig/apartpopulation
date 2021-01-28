@@ -27,8 +27,8 @@ set(BASE_SRCS
     historical_figure.cpp
     calendar.h
     calendar.cpp
-    easy_rand.h
-    easy_rand.cpp
+    util.h
+    util.cpp
     quad_renderer.h
     quad_renderer.cpp
     land_plot.h

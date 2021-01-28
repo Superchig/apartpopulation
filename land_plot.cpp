@@ -1,10 +1,11 @@
 #include "land_plot.h"
 
 #include "game.h"
+#include "util.h"
 
 FamilyNode::FamilyNode(FamilyNode *leader, HistoricalFigure *head,
                        LandPlot *plot)
-    : leader(leader), head(head), plot(plot), defunct(false)
+    : head(head), leader(leader), plot(plot), defunct(false)
 {
     if (this->head != nullptr)
     {

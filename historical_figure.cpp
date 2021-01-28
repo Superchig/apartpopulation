@@ -2,7 +2,7 @@
 
 #include <random>
 #include "game.h"
-#include "easy_rand.h"
+#include "util.h"
 
 int HistoricalFigure::count = 0;
 

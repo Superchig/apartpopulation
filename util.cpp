@@ -1,4 +1,4 @@
-#include "easy_rand.h"
+#include "util.h"
 
 int randInRange(int min, int max)
 {

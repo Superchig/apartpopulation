@@ -19,7 +19,7 @@
 #include "quad_renderer.h"
 #include "button.h"
 #include "historical_figure.h"
-#include "easy_rand.h"
+#include "util.h"
 #include "land_plot.h"
 
 Game Game::main;
@@ -32,15 +32,14 @@ void advanceYearCallback(Button *button);
 void advanceMonth();
 void syncPopTable(Table &popTable);
 
-void findFigures(std::stack<HistoricalFigure *> &outFigures, FamilyNode *root, std::function<bool(const HistoricalFigure *)>);
 void transferOrbiters(FamilyNode *source, FamilyNode *destination);
 void getAllFigures(std::vector<HistoricalFigure *> &figures,
                    FamilyNode *                     familyNode);
 void advanceFigureBirths(HistoricalFigure *figure);
 void advanceFamilyBirths(FamilyNode *familyNode);
 void deleteFamily(FamilyNode *family);
+void deleteRecursively(FamilyNode *family);
 
-template<class T> void removeItem(std::vector<T> &vec, T item);
 template<class T> void transferContents(std::vector<T> source, std::vector<T> destination);
 
 int main()
@@ -405,7 +404,7 @@ int main()
     {
         for (FamilyNode *family : plot.rootFamilies)
         {
-            delete family;
+            deleteRecursively(family);
         }
     }
     
@@ -492,6 +491,8 @@ void advanceMonth()
     }
 
     // Give births when it applies
+    // Make a copy of the living figures because main.livingFigures may be modified
+    // by the act of giving birth
     std::vector<HistoricalFigure *> maybeBirthsFigures =
         Game::main.livingFigures;
     for (HistoricalFigure *figure : maybeBirthsFigures)
@@ -519,7 +520,8 @@ void advanceMonth()
             getAllFigures(plotFigures, familyNode);
         }
 
-        // TODO: Add in death and propagated changes
+        // Check if figures should die
+        // ---------------------------
         for (HistoricalFigure *figure : plotFigures)
         {
             HistoricalFigure *spouse = figure->spouse;
@@ -527,8 +529,6 @@ void advanceMonth()
 
             if (figure->age >= 80)
             {
-                // TODO: Handle family node effects for death
-
                 std::cout << figure->name
                           << " has died of old age. May they rest in peace."
                           << std::endl;
@@ -546,8 +546,8 @@ void advanceMonth()
                 {
                     // Emancipate spouse and orbiters
                     std::cout << "\tSince they were the head of their family, "
-                                 "their spouse and children will now be "
-                                 "emancipated (if they have them)."
+                                 "their dependents will now be "
+                                 "emancipated."
                               << std::endl;
 
                     if (spouse != nullptr)
@@ -572,24 +572,36 @@ void advanceMonth()
                         // emancipatedFamilies.push_back(orbiter);
                     }
 
-                    if (family->leader == nullptr) // Root family
-                    {
-                        removeItem(family->plot->rootFamilies, family);
-                    }
-                    delete family; // Hoo boy
+                    deleteFamily(family); // Hoo boy
                 }
             }
         }
-
-        std::stack<HistoricalFigure *> eligibleMales;
-        std::stack<HistoricalFigure *> eligibleFemales;
+        
+        // Obtain new vector of figures, since some may have died
+        plotFigures.clear();
         for (FamilyNode *familyNode : plot.rootFamilies)
         {
-            // Initialize males and females who are eligible for marriage
-            findFigures(eligibleMales, familyNode,
-                        [](const HistoricalFigure *fig) { return fig->spouse == nullptr && fig->age >= 18 && fig->sex == Sex::Male; });
-            findFigures(eligibleFemales, familyNode,
-                        [](const HistoricalFigure *fig) { return fig->spouse == nullptr && fig->age >= 18 && fig->sex == Sex::Female; });
+            getAllFigures(plotFigures, familyNode);
+        }
+        
+        std::stack<HistoricalFigure *> eligibleMales;
+        std::stack<HistoricalFigure *> eligibleFemales;
+        for (HistoricalFigure *figure : plotFigures)
+        {
+            if (figure->age < 18 || figure->spouse != nullptr)
+            {
+                continue;
+            }
+            
+            switch (figure->sex)
+            {
+                case Sex::Male:
+                    eligibleMales.push(figure);
+                    break;
+                case Sex::Female:
+                    eligibleFemales.push(figure);
+                    break;
+            }
         }
 
         // Marry all possible couples
@@ -616,11 +628,7 @@ void advanceMonth()
                 removeItem(wFamily->leader->orbit, wFamily);
             }
 
-            if (wFamily->leader == nullptr)
-            {
-                removeItem(wFamily->plot->rootFamilies, wFamily);
-            }
-            delete wFamily; // Hoo boy
+            deleteFamily(wFamily); // Hoo boy
         }
 
         Game::main.marriageEligible +=
@@ -674,14 +682,20 @@ void deleteFamily(FamilyNode *family)
 {
     std::cout << "\tDeleting family headed by " << family->head->name << "." << std::endl;
     
+    if (family->leader == nullptr) // Root family
+    {
+        removeItem(family->plot->rootFamilies, family);
+    }
     delete family;
 }
 
-template<class T> void removeItem(std::vector<T> &vec, T item)
+void deleteRecursively(FamilyNode *family)
 {
-    auto it = std::find(std::begin(vec), std::end(vec), item);
-    assert(it != std::end(vec));
-    vec.erase(it);
+    for (FamilyNode *orbiter : family->orbit)
+    {
+        deleteRecursively(orbiter);
+    }
+    delete family;
 }
 
 template<class T> void transferContents(std::vector<T> source, std::vector<T> destination)
@@ -741,26 +755,6 @@ void advanceFamilyBirths(FamilyNode *familyNode)
     for (FamilyNode *orbiter : familyNode->orbit)
     {
         advanceFamilyBirths(orbiter);
-    }
-}
-
-void findFigures(std::stack<HistoricalFigure *> &outFigures, FamilyNode *root, std::function<bool(const HistoricalFigure *)> condition)
-{
-    HistoricalFigure *head   = root->head;
-    HistoricalFigure *spouse = root->head->spouse;
-
-    if (condition(head))
-    {
-        outFigures.push(head);
-    }
-    if (spouse != nullptr && condition(spouse))
-    {
-        outFigures.push(spouse);
-    }
-
-    for (FamilyNode *orbiter : root->orbit)
-    {
-        findFigures(outFigures, orbiter, condition);
     }
 }
 
