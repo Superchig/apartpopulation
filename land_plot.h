@@ -8,6 +8,7 @@
 class FamilyNode;
 class LandPlot;
 class Grid;
+class Clan;
 
 class FamilyNode
 {
@@ -16,9 +17,18 @@ public:
     FamilyNode *              leader;
     std::vector<FamilyNode *> orbit;
     LandPlot *                plot;
-    bool                      defunct;
+    Clan *                    clan;
+    
+    FamilyNode(FamilyNode *leader, HistoricalFigure *head, LandPlot *plot, Clan *clan);
+    
+    void propagateRelocation(LandPlot *toLocation);
+    size_t calcSize();
+};
 
-    FamilyNode(FamilyNode *leader, HistoricalFigure *head, LandPlot *plot);
+class Clan
+{
+public:
+    std::vector<FamilyNode *> rootFamilies;
 };
 
 class LandPlot
@@ -28,6 +38,10 @@ public:
     int mapY;
     
     std::vector<FamilyNode *> rootFamilies;
+    
+    std::string getCoords() const;
+    void gatherPopulationInto(std::vector<HistoricalFigure *> &figures);
+    size_t calcPopSize();
 };
 
 class Grid
@@ -37,6 +51,7 @@ public:
     int cols;
     std::vector<LandPlot> land;
     TextRenderer *textRen;
+    bool isActive;
 
     Grid(TextRenderer *textRen, int rows, int cols);
     

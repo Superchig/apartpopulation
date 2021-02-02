@@ -45,9 +45,9 @@ class HistoricalFigure
     HistoricalFigure *parent1;
     HistoricalFigure *parent2;
     HistoricalFigure *spouse;
-    
+
     std::vector<HistoricalFigure *> kids;
-    
+
     FamilyNode *family;
     
     HistoricalFigure();

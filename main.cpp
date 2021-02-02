@@ -22,6 +22,9 @@
 #include "util.h"
 #include "land_plot.h"
 
+constexpr int MIGRATE_FAMILIES = 150;
+constexpr int HALF_FAMILIES = 50;
+
 Game Game::main;
 
 float eyeChange(float eyeZ) { return 10.0f * Game::main.zoomFactor; }
@@ -33,14 +36,13 @@ void advanceMonth();
 void syncPopTable(Table &popTable);
 
 void transferOrbiters(FamilyNode *source, FamilyNode *destination);
-void getAllFigures(std::vector<HistoricalFigure *> &figures,
-                   FamilyNode *                     familyNode);
 void advanceFigureBirths(HistoricalFigure *figure);
 void advanceFamilyBirths(FamilyNode *familyNode);
 void deleteFamily(FamilyNode *family);
 void deleteRecursively(FamilyNode *family);
 
 template<class T> void transferContents(std::vector<T> source, std::vector<T> destination);
+void pushIfValid(std::array<LandPlot *, 8> &candidates, int &size, int x, int y);
 
 int main()
 {
@@ -156,17 +158,17 @@ int main()
     // -------------------------------
     
     // Create land grid
-    Grid landGrid{&textRen, 10, 10};
+    Grid landGrid{&textRen, 15, 15};
     Game::main.landGrid = &landGrid;
     
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 20; i++)
     {
         LandPlot &plot = Game::main.landGrid->plot(0, 0);
 
         HistoricalFigure *father = new HistoricalFigure(18);
         HistoricalFigure *mother = new HistoricalFigure(18);
-        FamilyNode *family = new FamilyNode(nullptr, father, &plot);
-        
+        FamilyNode *family = new FamilyNode(nullptr, father, &plot, nullptr);
+
         family->head = father;
 
         father->sex = Sex::Male;
@@ -204,8 +206,8 @@ int main()
     spreadTable.setItem(0, 1, "Age");
     spreadTable.setItem(0, 2, "Sex");
     spreadTable.setItem(0, 3, "Spouse");
-    spreadTable.setItem(0, 4, "Family Head");
-    
+    spreadTable.setItem(0, 4, "Plot");
+
     syncPopTable(spreadTable);
 
     glCheckError();
@@ -298,11 +300,15 @@ int main()
             {
                 spreadTable.isActive = false;
                 spreadTable.scrollButton->isActive = false;
+                
+                Game::main.landGrid->isActive = true;
             }
             else
             {
                 spreadTable.isActive = true;
                 spreadTable.scrollButton->isActive = true;
+                
+                Game::main.landGrid->isActive = false;
             }
         }
 
@@ -362,7 +368,10 @@ int main()
         textRen.renderText(marriageEligible, -640.0f, Game::main.windowHeight / 2.0f - 32.0f * 5.0f,
                            1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         
-        landGrid.draw();
+        if (landGrid.isActive)
+        {
+            landGrid.draw();
+        }
         
         if (spreadTable.isActive)
         {
@@ -512,13 +521,10 @@ void advanceMonth()
             }
         }
         #endif
-
+        
         // std::vector<FamilyNode *> emancipatedFamilies;
         std::vector<HistoricalFigure *> plotFigures;
-        for (FamilyNode *familyNode : plot.rootFamilies)
-        {
-            getAllFigures(plotFigures, familyNode);
-        }
+        plot.gatherPopulationInto(plotFigures);
 
         // Check if figures should die
         // ---------------------------
@@ -553,7 +559,7 @@ void advanceMonth()
                     if (spouse != nullptr)
                     {
                         FamilyNode *emancipated =
-                            new FamilyNode(nullptr, spouse, family->plot);
+                            new FamilyNode(nullptr, spouse, family->plot, family->clan);
                         plot.rootFamilies.push_back(emancipated);
 
                         std::cout
@@ -579,10 +585,7 @@ void advanceMonth()
         
         // Obtain new vector of figures, since some may have died
         plotFigures.clear();
-        for (FamilyNode *familyNode : plot.rootFamilies)
-        {
-            getAllFigures(plotFigures, familyNode);
-        }
+        plot.gatherPopulationInto(plotFigures);
         
         std::stack<HistoricalFigure *> eligibleMales;
         std::stack<HistoricalFigure *> eligibleFemales;
@@ -633,6 +636,82 @@ void advanceMonth()
 
         Game::main.marriageEligible +=
             eligibleMales.size() + eligibleFemales.size();
+            
+        // Migrate to another plot, if necessary
+        // -------------------------------------
+        plotFigures.clear();
+        plot.gatherPopulationInto(plotFigures);
+        
+        if (plotFigures.size() > 150)
+        {
+            LandPlot *nextPlot = nullptr;
+            const int dieRoll = randInRange(1, 10);
+            if (dieRoll == 1)
+            {
+                std::vector<LandPlot *> candidates;
+
+                constexpr int reach = 5;
+                int leftBound = std::max(0, plot.mapX - reach);
+                int rightBound = std::min(Game::main.landGrid->cols - 1, plot.mapX + reach);
+                int topBound = std::min(Game::main.landGrid->rows - 1, plot.mapY + reach);
+                int bottomBound = std::max(0, plot.mapY - reach);
+                for (int row = bottomBound; row <= topBound; row++)
+                {
+                    for (int col = leftBound; col <= rightBound; col++)
+                    {
+                        LandPlot &candidate = Game::main.landGrid->plot(col, row);
+                        if (candidate.calcPopSize() < MIGRATE_FAMILIES)
+                        {
+                            candidates.push_back(&Game::main.landGrid->plot(col, row));
+                        }
+                    }
+                }
+
+                if (!candidates.empty())
+                {
+                    nextPlot = candidates[randInRange(0, candidates.size() - 1)];
+                }
+            }
+            else
+            {
+                std::array<LandPlot *, 8> candidates;
+                int size = 0;
+                pushIfValid(candidates, size, plot.mapX - 1, plot.mapY + 1);
+                pushIfValid(candidates, size, plot.mapX,     plot.mapY + 1);
+                pushIfValid(candidates, size, plot.mapX + 1, plot.mapY + 1);
+                pushIfValid(candidates, size, plot.mapX + 1, plot.mapY    );
+                pushIfValid(candidates, size, plot.mapX + 1, plot.mapY - 1);
+                pushIfValid(candidates, size, plot.mapX,     plot.mapY - 1);
+                pushIfValid(candidates, size, plot.mapX - 1, plot.mapY - 1);
+                pushIfValid(candidates, size, plot.mapX - 1, plot.mapY    );
+
+                if (size > 0)
+                {
+                    const int randIndex = randInRange(0, size - 1);
+                    nextPlot = candidates[randIndex];
+                }
+            }
+
+            if (nextPlot == nullptr)
+            {
+                std::cout << "Families in " << plot.getCoords() << " have nowhere to go, but death does not exist." << std::endl;
+            }
+            else
+            {
+                for (int i = 0; i < plot.rootFamilies.size() / 3; i++)
+                {
+                    const int index = randInRange(0, plot.rootFamilies.size() - 1);
+                    FamilyNode *removed = plot.rootFamilies[index];
+                    plot.rootFamilies.erase(std::begin(plot.rootFamilies) + index);
+
+                    removed->propagateRelocation(nextPlot);
+                    nextPlot->rootFamilies.push_back(removed);
+                }
+
+                std::cout << "In search of more elite jobs, some nobles from plot "
+                              << plot.getCoords() << " move to plot " << nextPlot->getCoords() << "." << std::endl;
+            }
+        }
     }
 
     // Resize the population UI table's internal vector as needed
@@ -666,15 +745,7 @@ void syncPopTable(Table &popTable)
         popTable.setItem(i + 1, 1, std::to_string(figure->age));
         popTable.setItem(i + 1, 2, sexStrings[figure->sex]);
         popTable.setItem(i + 1, 3, figure->getSpouseName());
-        // auto extraFamily = figure->family;
-        // auto extraHead = figure->family->head;
-        // if (extraHead == nullptr)
-        // {
-        //     std::cout << "ERROR::syncPopTable: extraHead is nullptr!" << std::endl;
-        //     std::cout << "\tfigure->name: " << figure->name << std::endl;
-        // }
-        // auto extraName = figure->family->head->name;
-        // popTable.setItem(i + 1, 4, figure->family->head->name);
+        popTable.setItem(i + 1, 4, figure->family->plot->getCoords());
     }
 }
 
@@ -737,7 +808,7 @@ void advanceFigureBirths(HistoricalFigure *figure)
             figure->kids.push_back(newKid);
             spouse->kids.push_back(newKid);
 
-            family->orbit.push_back(new FamilyNode(family, newKid, family->plot));
+            family->orbit.push_back(new FamilyNode(family, newKid, family->plot, family->clan));
         }
     }
 }
@@ -768,5 +839,21 @@ void getAllFigures(std::vector<HistoricalFigure *> &figures, FamilyNode *familyN
     for (FamilyNode *orbiter : familyNode->orbit)
     {
         getAllFigures(figures, orbiter); 
+    }
+}
+
+void pushIfValid(std::array<LandPlot *, 8> &candidates, int &size, int x, int y)
+{
+    const bool coordsAreValid = 0 <= x && x < Game::main.landGrid->cols
+                             && 0 <= y && y < Game::main.landGrid->rows;
+    if (coordsAreValid)
+    {
+        LandPlot *candidate = &Game::main.landGrid->plot(x, y);
+
+        if (candidate->calcPopSize() < HALF_FAMILIES)
+        {
+            candidates[size] = candidate;
+            size++;
+        }
     }
 }

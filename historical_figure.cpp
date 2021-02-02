@@ -3,6 +3,7 @@
 #include <random>
 #include "game.h"
 #include "util.h"
+#include "land_plot.h"
 
 int HistoricalFigure::count = 0;
 

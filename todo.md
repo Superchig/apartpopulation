@@ -36,15 +36,15 @@
 - [x] Cull parts of table that aren't on screen
 - [x] Add actual table-scrolling functionality (that mostly works) to scrollbar
 - [x] Make white texture accessible as a Texture2D object
+- [x] Rewrite the (very buggy and broken) Family system to use a tree-node
+  structure of some kind
+- [x] Implement very basic grid of colored quads and text
 
 # Current Goal
-- Rewrite the (very buggy and broken) Family system to use a tree-node
-  structure of some kind
+- Add more UI to view info on world-gen'd populations
+- Finish basic family movement, including fixing right-most column bug
+  - Is the bug still an issue?
 - Move the pass buttons and noble table with the camera
-- Implement basic sprite grid to represent controlled land using the white
-  texture (but colored accordingly)
-  - Could have the land be colored according to its controller (state) and
-    have a letter based off whether it's a village vs. city
 - Render text that's been constrained to a box, which can be centered or
   left-aligned (or right-aligned?)
 
