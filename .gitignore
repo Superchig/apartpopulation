@@ -4,5 +4,6 @@ build-kdevelop/
 CMakeLists.txt.user
 *.kate-swp
 .vs/
+!.vs/launch.vs.json
 CMakeSettings.json
 vgcore*
