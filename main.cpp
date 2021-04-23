@@ -21,6 +21,7 @@
 #include "historical_figure.h"
 #include "util.h"
 #include "land_plot.h"
+#include "world_grid.h"
 
 constexpr int MIGRATE_FAMILIES = 150;
 constexpr int HALF_FAMILIES = 50;
@@ -116,9 +117,13 @@ int main()
     Texture2D logh{"sprites/logh.png", true};
     Texture2D container{"sprites/container.jpg", false};
     Texture2D buttonNormal{"sprites/adwitr-5th-button0.png", true, GL_NEAREST};
+    Texture2D cobblestone{"sprites/cobblestone.png", true, GL_NEAREST};
+    Texture2D testPlayerTex{"sprites/test-sprite.png", true, GL_NEAREST};
     quadRenderer.textureIDs.push_back(container.ID);
     quadRenderer.textureIDs.push_back(logh.ID);
     quadRenderer.textureIDs.push_back(buttonNormal.ID);
+    quadRenderer.textureIDs.push_back(cobblestone.ID);
+    quadRenderer.textureIDs.push_back(testPlayerTex.ID);
     Game::main.quadRenderer = &quadRenderer;
     
     std::cout << "GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: " << GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS << std::endl;
@@ -154,6 +159,42 @@ int main()
     passYearButton.onClickStart = advanceYearCallback;
     Game::main.buttons.push_back(&passYearButton);
     
+    // Set up test player.
+    // -------------------------------
+    Entity *testPlayer = new Entity();
+    testPlayer->isShown = true;
+    testPlayer->texture = &testPlayerTex;
+    Limb *newLeg     = new Limb();
+    newLeg->posX       = 0;
+    newLeg->posY       = 0;
+    newLeg->posZ       = 0;
+    newLeg->isShown    = false;
+    testPlayer->Add_Limb(newLeg);
+
+    // Set up world map.
+    // -------------------------------
+
+    WorldGrid worldGrid{15, 15};
+    Game::main.worldGrid = &worldGrid;
+    for (int x = 0; x < worldGrid.rows; x++)
+    {
+        for (int y = 0; y < worldGrid.cols; y++)
+        {
+            Node *newNode = new Node();
+            newNode->m_x = x;
+            newNode->m_y = y;
+            worldGrid.nodes.push_back(newNode);
+
+            Thing *newFloor = new Thing();
+            newFloor->isShown = true;
+            newFloor->posX   = x;
+            newFloor->posY   = y;
+            newFloor->texture = &cobblestone;
+            newNode->occupants.push_back(newFloor);
+        }
+    }
+    worldGrid.nodes[0]->occupants.push_back(testPlayer);
+
     // Set up initial population
     // -------------------------------
     
@@ -296,19 +337,47 @@ int main()
         
         if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
         {
-            if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+            if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && spreadTable.isActive == true)
             {
                 spreadTable.isActive = false;
                 spreadTable.scrollButton->isActive = false;
                 
                 Game::main.landGrid->isActive = true;
             }
-            else
+            else if (Game::main.landGrid->isActive = true)
             {
                 spreadTable.isActive = true;
                 spreadTable.scrollButton->isActive = true;
                 
                 Game::main.landGrid->isActive = false;
+            }
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        {
+            if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+            {
+                spreadTable.isActive = false;
+                spreadTable.scrollButton->isActive = false;
+
+                Game::main.landGrid->isActive = false;
+
+                passYearButton.isActive = false;
+                button.isActive         = false;
+
+                worldGrid.isActive      = true;
+            }
+            else
+            {
+                spreadTable.isActive = true;
+                spreadTable.scrollButton->isActive = true;
+
+                Game::main.landGrid->isActive = false;
+
+                passYearButton.isActive = true;
+                button.isActive         = true;
+
+                worldGrid.isActive      = false;
             }
         }
 
@@ -371,6 +440,11 @@ int main()
         if (landGrid.isActive)
         {
             landGrid.draw();
+        }
+
+        if (worldGrid.isActive)
+        {
+            worldGrid.draw();
         }
         
         if (spreadTable.isActive)

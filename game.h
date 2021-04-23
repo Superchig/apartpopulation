@@ -10,6 +10,7 @@ class HistoricalFigure;
 class Button;
 class Table;
 class Grid;
+class WorldGrid;
 
 // Global state
 class Game
@@ -54,6 +55,7 @@ class Game
     Date date = {1, JAN};
     
     Grid *landGrid;
+    WorldGrid *worldGrid;
 #pragma endregion
     
     // TODO: Avoid using global state to make spreadTable accessible

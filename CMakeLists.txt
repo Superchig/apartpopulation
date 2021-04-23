@@ -34,7 +34,7 @@ set(BASE_SRCS
     land_plot.h
     land_plot.cpp)
 
-add_executable(apart-population ${BASE_SRCS})
+add_executable(apart-population ${BASE_SRCS} "pathfinding.h" "world_grid.cpp" "entity.h" "physics.h")
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
