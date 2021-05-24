@@ -30,9 +30,11 @@ Game Game::main;
 
 float eyeChange(float eyeZ) { return 10.0f * Game::main.zoomFactor; }
 
+void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
 void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void advanceMonthCallback(Button *button);
 void advanceYearCallback(Button *button);
+void cursorCallback(GLFWwindow *window, double xPos, double yPos);
 void advanceMonth();
 void syncPopTable(Table &popTable);
 
@@ -98,6 +100,8 @@ int main()
 #endif
 
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwSetKeyCallback(window, keyCallback);
+    glfwSetCursorPosCallback(window, cursorCallback);
 
     // Set projection matrix once outside of render loop
     // -----------------------------------
@@ -265,8 +269,8 @@ int main()
     
     while (!glfwWindowShouldClose(window))
     {
-        // Handle user input
-        // -----------------
+        // Handle user input, when not with callback
+        // -----------------------------------------
         if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS ||
             glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
@@ -286,7 +290,7 @@ int main()
             // Game::main.Game::main.eyeZ += zChange;
             // std::cout << "Game::main.eyeZ: " << Game::main.eyeZ << std::endl;
             Game::main.zoomFactor += 0.01f;
-            
+
             Game::main.updateOrtho();
         }
         else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
@@ -294,7 +298,7 @@ int main()
             Game::main.zoomFactor = 1.0f;
             Game::main.eyeX = 0.0f;
             Game::main.eyeY = 0.0f;
-            
+
             Game::main.updateOrtho();
         }
         else if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
@@ -302,7 +306,7 @@ int main()
             Game::main.zoomFactor = 1.0f;
             Game::main.eyeX = 0.0f;
             Game::main.eyeY = -20000.0f;
-            
+
             Game::main.updateOrtho();
         }
 
@@ -333,24 +337,6 @@ int main()
         {
             spreadTable.yOffset += 10.0f;
             std::cout << "yOffset: " << spreadTable.yOffset << std::endl;
-        }
-        
-        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-        {
-            if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && spreadTable.isActive == true)
-            {
-                spreadTable.isActive = false;
-                spreadTable.scrollButton->isActive = false;
-                
-                Game::main.landGrid->isActive = true;
-            }
-            else if (Game::main.landGrid->isActive = true)
-            {
-                spreadTable.isActive = true;
-                spreadTable.scrollButton->isActive = true;
-                
-                Game::main.landGrid->isActive = false;
-            }
         }
 
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
@@ -929,5 +915,25 @@ void pushIfValid(std::array<LandPlot *, 8> &candidates, int &size, int x, int y)
             candidates[size] = candidate;
             size++;
         }
+    }
+}
+
+void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_T && action == GLFW_PRESS)
+    {
+        Game::main.spreadTable->isActive = !Game::main.spreadTable->isActive;
+        Game::main.spreadTable->scrollButton->isActive = !Game::main.spreadTable->scrollButton->isActive;
+        Game::main.landGrid->isActive = !Game::main.landGrid->isActive;
+    }
+}
+
+void cursorCallback(GLFWwindow *window, double xPos, double yPos)
+{
+    // TODO: Calculate when mouse enters UI plot of land
+
+    if (Game::main.buttons[0]->hasInBounds(Game::main.mouseX, Game::main.mouseY))
+    {
+        std::cout << "In bounds of a button!" << std::endl;
     }
 }

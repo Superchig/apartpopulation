@@ -7,8 +7,6 @@
 
 ## "Trivial"-medium TODOs
 - Implement table scrolling via mouse up-or-down
-- Implement a GLFW [key callback](https://gamedev.stackexchange.com/questions/150157/how-to-improve-my-input-handling-in-glfw) for input handling, rather than querying
-  the key states every frame
 
 ## Broad, handy TODOs
 - Render a console in OpenGL with output
@@ -16,6 +14,9 @@
   - May need a new representation for sprites that record parts of a texture
     atlas
   - May need a disk-saveable text representation (YAML) for sprite assets
+
+## Misc TODOs
+- Implement game object trees with transforms?
 
 ## Finished todos
 - [x] Show passing of a month
@@ -39,9 +40,12 @@
 - [x] Rewrite the (very buggy and broken) Family system to use a tree-node
   structure of some kind
 - [x] Implement very basic grid of colored quads and text
+- [x] Use a mix of GLFW callbacks and polling for key input handling, rather
+  than querying the key states every frame
 
 # Current Goal
-- Add more UI to view info on world-gen'd populations
+- Add more UI to view info on world-gen'd populations, implement mouse-over
+  view of more info on plots of land
 - Finish basic family movement, including fixing right-most column bug
   - Is the bug still an issue?
 - Move the pass buttons and noble table with the camera
@@ -68,7 +72,7 @@
   look-up indices?
 - For audio, consider using [SoLoud](https://sol.gfxile.net/soloud/)
 - Implement some kind of frame vs. render [game loop](http://gameprogrammingpatterns.com/game-loop.html), with possible semi-fixed [delta times](https://gafferongames.com/post/fix_your_timestep/)
-- Do we need performance optimizations for checking button presses? 
+- Do we need performance optimizations for checking button presses?
   (put in contiguous array as with DOD, use ECS with DOD, or binary-space
   partitioning?)
 
@@ -81,13 +85,18 @@
   with minor mutation of a previous member)
 - Polygamy?
 - Natural selection-esque personality traits
-	- Recklessness
-		- Likeliness to launch coups or attempt to seize a position
-	- FactionLoyalty
-		- How hard/easy it is to get someone to leave a faction
-	- Clemency
-		- How likely someone is to punish someone after they try something against them
-		- Showing clemency should have certain benefits, while destroying your enemies
-		  will probably have obvious benefits of their own.
-	- Studiousness vs Activity (different name)
-		- How often someone will try to improve their skills vs do things
+  - Recklessness
+    - Likeliness to launch coups or attempt to seize a
+      position
+  - FactionLoyalty
+    - How hard/easy it is to get someone to leave a
+      faction
+  - Clemency
+    - How likely someone is to punish someone after they
+      try something against them
+    - Showing clemency should have certain benefits, while
+      destroying your enemies will probably have obvious
+      benefits of their own.
+  - Studiousness vs Activity (different name)
+    - How often someone will try to improve their skills
+      vs do things
